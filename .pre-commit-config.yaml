@@ -13,3 +13,13 @@ repos:
   hooks:
   - id: clang-format
     'types_or': [c++, c]
+- repo: https://github.com/detailyang/pre-commit-shell
+  rev: v1.0.6
+  hooks:
+  - id: shell-lint
+    args: [--format=json]
+- repo: https://github.com/pocc/pre-commit-hooks
+  rev: v1.3.5
+  hooks:
+  - id: clang-format
+  - id: clang-tidy
