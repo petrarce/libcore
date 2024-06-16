@@ -23,3 +23,9 @@ repos:
   hooks:
   - id: clang-format
   - id: clang-tidy
+
+- repo: https://github.com/cheshirekow/cmake-format-precommit
+  rev: v0.6.10
+  hooks:
+  - id: cmake-format
+  - id: cmake-lint
