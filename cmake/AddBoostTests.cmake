@@ -1,4 +1,4 @@
-find_package(Boost 1.74 COMPONENTS unit_test_framework)
+find_package(Boost COMPONENTS unit_test_framework REQUIRE)
 
 function(add_boost_test)
 
