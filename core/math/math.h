@@ -1,6 +1,6 @@
 #ifndef math_h_
 #define math_h_
 
-#include "gcd.xpp"
+#include "gcd.hpp"
 
 #endif
