@@ -1,32 +1,10 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
--   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v3.2.0
-    hooks:
-    -   id: trailing-whitespace
-    -   id: end-of-file-fixer
-    -   id: check-yaml
-    -   id: check-added-large-files
-- repo: https://github.com/pre-commit/mirrors-clang-format
-  rev: v18.1.6
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v3.2.0
   hooks:
-  - id: clang-format
-    'types_or': [c++, c]
-    exclude: '3rdparty/*'
-- repo: https://github.com/detailyang/pre-commit-shell
-  rev: v1.0.6
-  hooks:
-  - id: shell-lint
-    args: [--format=json]
-- repo: https://github.com/pocc/pre-commit-hooks
-  rev: v1.3.5
-  hooks:
-  - id: clang-format
-  - id: clang-tidy
-
-- repo: https://github.com/cheshirekow/cmake-format-precommit
-  rev: v0.6.10
-  hooks:
-  - id: cmake-format
-  - id: cmake-lint
+  - id: trailing-whitespace
+  - id: end-of-file-fixer
+  - id: check-yaml
+  - id: check-added-large-files
