@@ -8,4 +8,6 @@ add_boost_test(
     LINK
         core::gfx
         OSMesa::OSMesa
+    RESOURCES
+        shaders/vert.glsl
     )

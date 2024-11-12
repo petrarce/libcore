@@ -34,14 +34,13 @@ BOOST_AUTO_TEST_SUITE (TestShader)
 
 BOOST_FIXTURE_TEST_CASE(TestShaderCompilation, GLMesaTestSuite)
 {
-	// Create an OSMesa context
 
-	VertexShader vshader("#version 440 core\n void main() {}");
-	FragmentShader fshader("#version 440 core\n void main(){}");
-	GeometryShader gshader("#version 440 core\n void main(){}");
-	TessControlShader tcshader("#version 440 core\n void main(){}");
-	TessEvaluationShader tevshader("#version 440 core\n void main(){}");
-	ComputeShader cshader("#version 440 core\n void main(){}");
+	VertexShader vshader(std::string{"#version 440 core\n void main() {}"});
+	FragmentShader fshader(std::string{"#version 440 core\n void main(){}"});
+	GeometryShader gshader(std::string{"#version 440 core\n void main(){}"});
+	TessControlShader tcshader(std::string{"#version 440 core\n void main(){}"});
+	TessEvaluationShader tevshader(std::string{"#version 440 core\n void main(){}"});
+	ComputeShader cshader(std::string{"#version 440 core\n void main(){}"});
 	try {
 		vshader.Compile();
 		fshader.Compile();
@@ -57,6 +56,17 @@ BOOST_FIXTURE_TEST_CASE(TestShaderCompilation, GLMesaTestSuite)
 		BOOST_CHECK_MESSAGE(false, e.what());
 	}
 
+	VertexShader vshaderfile(std::filesystem::path("shaders/vert.glsl"));
+	try{ vshaderfile.Compile(); } catch(const std::exception& e){BOOST_CHECK_MESSAGE(false, e.what());}
+
 }
+
+BOOST_FIXTURE_TEST_CASE(TestShaderFileCompilation, GLMesaTestSuite)
+{
+	VertexShader vshaderfile(std::filesystem::path("shaders/vert.glsl"));
+	try{ vshaderfile.Compile(); } catch(const std::exception& e){BOOST_CHECK_MESSAGE(false, e.what());}
+
+}
+
 
 BOOST_AUTO_TEST_SUITE_END ()

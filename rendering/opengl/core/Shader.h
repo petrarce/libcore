@@ -4,6 +4,8 @@
 #include <glad/glad.h>
 #include <string>
 #include <absl/strings/str_format.h>
+#include <filesystem>
+#include <fstream>
 
 
 namespace core_gfx::open_gl
@@ -36,8 +38,27 @@ class Shader : public detail::ShaderBase
 {
 public:
 	Shader() = delete;
+
 	explicit Shader(const ::std::string& shader)
 		: ShaderBase()
+	{
+		Init(shader);
+	}
+
+	explicit Shader(const std::filesystem::path& shaderPath)
+	{
+		std::ifstream file(shaderPath);
+		std::string shader;
+		if(file.is_open())
+		{
+			std::stringstream sstream;
+			sstream << file.rdbuf();
+			shader = sstream.str();
+		}
+		Init(shader);
+	}
+private:
+	void Init(const ::std::string& shader)
 	{
 		mShaderId = glCreateShader(SType);
 		const char* shader_str = shader.c_str();
