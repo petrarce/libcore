@@ -24,17 +24,19 @@ function(add_boost_test)
     message("BOOSTTEST_RESOURCES=${BOOSTTEST_RESOURCES}")
     if(NOT "${BOOSTTEST_RESOURCES}" STREQUAL "")
         message("adding for BOOSTTEST_RESOURCES=${BOOSTTEST_RESOURCES}")
-        set(BUPRODUCT_FILES)
+        set(OUTPUT_RESOURCES)
         foreach(resource "${BOOSTTEST_RESOURCES}")
+            set(SOURCE_RES "${CMAKE_CURRENT_SOURCE_DIR}/${resource}")
+            set(DEST_RES "${CMAKE_CURRENT_BINARY_DIR}/${resource}")
             add_custom_command(
-                OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/${resource}"
-                COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/${resource}" "${CMAKE_CURRENT_BINARY_DIR}/${resource}"
-                BYPRODUCTS "${CMAKE_CURRENT_BINARY_DIR}/${resource}"
+                OUTPUT "${DEST_RES}"
+                DEPENDS "${SOURCE_RES}"
+                COMMAND ${CMAKE_COMMAND} -E copy "${SOURCE_RES}" "${DEST_RES}"
             )
-            list(APPEND BUPRODUCT_FILES "${CMAKE_CURRENT_BINARY_DIR}/${resource}")
+            list(APPEND OUTPUT_RESOURCES "${DEST_RES}")
 
         endforeach()
-        add_custom_target( ${TESTNAME}-resources DEPENDS ${BOOSTTEST_RESOURCES} )
+        add_custom_target( ${TESTNAME}-resources DEPENDS ${OUTPUT_RESOURCES} )
         add_dependencies( ${TESTNAME} ${TESTNAME}-resources )
     endif()
 endfunction()

@@ -56,9 +56,6 @@ BOOST_FIXTURE_TEST_CASE(TestShaderCompilation, GLMesaTestSuite)
 		BOOST_CHECK_MESSAGE(false, e.what());
 	}
 
-	VertexShader vshaderfile(std::filesystem::path("shaders/vert.glsl"));
-	try{ vshaderfile.Compile(); } catch(const std::exception& e){BOOST_CHECK_MESSAGE(false, e.what());}
-
 }
 
 BOOST_FIXTURE_TEST_CASE(TestShaderFileCompilation, GLMesaTestSuite)
