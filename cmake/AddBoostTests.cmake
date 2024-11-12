@@ -25,7 +25,7 @@ function(add_boost_test)
     if(NOT "${BOOSTTEST_RESOURCES}" STREQUAL "")
         message("adding for BOOSTTEST_RESOURCES=${BOOSTTEST_RESOURCES}")
         set(OUTPUT_RESOURCES)
-        foreach(resource "${BOOSTTEST_RESOURCES}")
+        foreach(resource ${BOOSTTEST_RESOURCES})
             set(SOURCE_RES "${CMAKE_CURRENT_SOURCE_DIR}/${resource}")
             set(DEST_RES "${CMAKE_CURRENT_BINARY_DIR}/${resource}")
             add_custom_command(

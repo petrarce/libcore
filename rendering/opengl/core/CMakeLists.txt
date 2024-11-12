@@ -3,6 +3,8 @@ add_library(core-gfx SHARED
     Shader.h
     Program.cpp
     Program.h
+    utils/Errors.h
+    utils/Errors.cpp
 )
 
 target_link_libraries(core-gfx

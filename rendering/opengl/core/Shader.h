@@ -6,7 +6,7 @@
 #include <absl/strings/str_format.h>
 #include <filesystem>
 #include <fstream>
-
+#include <iostream>
 
 namespace core_gfx::open_gl
 {
@@ -55,6 +55,8 @@ public:
 			sstream << file.rdbuf();
 			shader = sstream.str();
 		}
+		else
+			std::cout << "Failed to open file:" << shaderPath << std::endl;
 		Init(shader);
 	}
 private:

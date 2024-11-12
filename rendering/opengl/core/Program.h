@@ -34,21 +34,8 @@ public:
 		return log;
 	}
 
-	template<IsShader  ShaderT>
-	void SetupShaders(const ShaderT& shader) {
-		shader.Compile();
-		glAttachShader(mProgId, shader.Id());
-	}
-
 	template<IsShader ShaderT, class... Args>
-	void SetupShaders(const ShaderT& shader, const Args&&... shaders)
-	{
-		SetupShaders(shader);
-		SetupShaders(shaders...);
-	}
-
-	template<IsShader ShaderT, class... Args>
-	void Setup(const ShaderT& shader, const Args&&... shaders)
+	void Setup(ShaderT& shader, Args&&... shaders)
 	{
 		SetupShaders(shader, shaders...);
 		glLinkProgram(mProgId);
@@ -69,6 +56,19 @@ public:
 		glUseProgram(mProgId);
 	}
 private:
+
+	template<IsShader  ShaderT>
+	void SetupShaders(ShaderT& shader) {
+		shader.Compile();
+		glAttachShader(mProgId, shader.Id());
+	}
+
+	template<IsShader ShaderT, class... Args>
+	void SetupShaders(ShaderT& shader, Args&&... shaders)
+	{
+		SetupShaders(shader);
+		SetupShaders(shaders...);
+	}
 	GLint mProgId;
 };
 
