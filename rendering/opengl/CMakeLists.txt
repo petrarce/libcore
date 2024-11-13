@@ -8,5 +8,6 @@ return_if( NOT OSMesa_FOUND )
 
 add_subdirectory(glad/glad/)
 add_subdirectory(core)
+add_subdirectory(ui/ui)
 add_subdirectory(apps)
 add_subdirectory(tests)
