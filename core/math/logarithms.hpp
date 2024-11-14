@@ -17,6 +17,6 @@ T log_b(const T& b, const T& a)
 	return std::log2(a) / std::log2(b);
 }
 
-}
-}
+} // namespace math
+} // namespace libcore
 #endif // logarithms_hpp_

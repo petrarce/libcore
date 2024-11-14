@@ -11,7 +11,8 @@
 namespace core_gfx::open_gl
 {
 
-namespace detail {
+namespace detail
+{
 class ShaderBase
 {
 public:
@@ -20,7 +21,8 @@ public:
 	void Compile();
 	GLint Id() const;
 
-	std::string GetInfoLog() {
+	std::string GetInfoLog()
+	{
 		GLint logsize;
 		glGetShaderiv(mShaderId, GL_INFO_LOG_LENGTH, &logsize);
 		std::string log(logsize, 0);
@@ -31,7 +33,7 @@ public:
 protected:
 	GLint mShaderId;
 };
-}
+} // namespace detail
 
 template<GLint SType>
 class Shader : public detail::ShaderBase
@@ -49,7 +51,7 @@ public:
 	{
 		std::ifstream file(shaderPath);
 		std::string shader;
-		if(file.is_open())
+		if (file.is_open())
 		{
 			std::stringstream sstream;
 			sstream << file.rdbuf();
@@ -59,6 +61,7 @@ public:
 			std::cout << "Failed to open file:" << shaderPath << std::endl;
 		Init(shader);
 	}
+
 private:
 	void Init(const ::std::string& shader)
 	{
@@ -75,5 +78,5 @@ using GeometryShader = Shader<GL_GEOMETRY_SHADER>;
 using FragmentShader = Shader<GL_FRAGMENT_SHADER>;
 using ComputeShader = Shader<GL_COMPUTE_SHADER>;
 
-}
+} // namespace core_gfx::open_gl
 #endif // SHADER_H

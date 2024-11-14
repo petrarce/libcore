@@ -9,7 +9,7 @@
 
 using namespace core_gfx::open_gl;
 
-BOOST_AUTO_TEST_SUITE (TestProgram)
+BOOST_AUTO_TEST_SUITE(TestProgram)
 
 BOOST_FIXTURE_TEST_CASE(TestProgramConstruction, GLMesaTestFixture)
 {
@@ -22,4 +22,4 @@ BOOST_FIXTURE_TEST_CASE(TestProgramConstruction, GLMesaTestFixture)
 	BOOST_CHECK(utils::CheckErrors() == false);
 }
 
-BOOST_AUTO_TEST_SUITE_END ()
+BOOST_AUTO_TEST_SUITE_END()

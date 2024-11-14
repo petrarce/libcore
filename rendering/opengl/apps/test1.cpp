@@ -7,10 +7,12 @@ int main()
 	Glfw glfw;
 	gladLoadGL();
 
-	glfw.Run([](){
-		glClearColor(0, 1, 0, 1);
-		glClearDepth(1.f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		return false;
-	});
+	glfw.Run(
+		[]()
+		{
+			glClearColor(0, 1, 0, 1);
+			glClearDepth(1.f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			return false;
+		});
 }

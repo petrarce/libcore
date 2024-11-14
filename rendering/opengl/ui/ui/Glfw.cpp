@@ -12,13 +12,17 @@ class GlfwImpl
 public:
 	GlfwImpl(int width, int height, const std::string& name)
 		: window(glfwCreateWindow(width, height, name.c_str(), NULL, NULL))
-	{}
-	struct GLFWwindowDeleter { void operator()(GLFWwindow* ptr) { glfwDestroyWindow(ptr); } };
+	{
+	}
+	struct GLFWwindowDeleter
+	{
+		void operator()(GLFWwindow* ptr) { glfwDestroyWindow(ptr); }
+	};
 	using GLFWwindowUniquePtr = std::unique_ptr<GLFWwindow, GLFWwindowDeleter>;
 	GLFWwindowUniquePtr window;
 };
 
-}
+} // namespace detail
 
 Glfw::Glfw(int vmajor, int vminor, int width, int height)
 	: Ui()
@@ -37,13 +41,13 @@ Glfw::~Glfw()
 	glfwTerminate();
 }
 
-void Glfw::Run(std::function<bool ()> &&functor)
+void Glfw::Run(std::function<bool()>&& functor)
 {
-	while(!glfwWindowShouldClose(impl->window.get()) && !functor())
+	while (!glfwWindowShouldClose(impl->window.get()) && !functor())
 	{
 		glfwSwapBuffers(impl->window.get());
 		glfwPollEvents();
 	}
 }
 
-}
+} // namespace opengl::ui

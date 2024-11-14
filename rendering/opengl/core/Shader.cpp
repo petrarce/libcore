@@ -3,10 +3,7 @@
 namespace core_gfx::open_gl
 {
 
-detail::ShaderBase::~ShaderBase()
-{
-	glDeleteShader(mShaderId);
-}
+detail::ShaderBase::~ShaderBase() { glDeleteShader(mShaderId); }
 
 void detail::ShaderBase::Compile()
 {
@@ -17,6 +14,6 @@ void detail::ShaderBase::Compile()
 		throw std::runtime_error(absl::StrFormat("Failed to compile shader\n%s", GetInfoLog()));
 }
 
-GLint detail::ShaderBase::Id() const {return mShaderId; }
+GLint detail::ShaderBase::Id() const { return mShaderId; }
 
-}
+} // namespace core_gfx::open_gl
