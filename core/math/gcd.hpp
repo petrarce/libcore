@@ -5,7 +5,8 @@ namespace libcore
 namespace math
 {
 
-template <class T> T gcd (const T &a, const T &b)
+template<class T>
+T gcd(const T& a, const T& b)
 {
 	auto aa = a > b ? a : b;
 	auto bb = a > b ? b : a;

@@ -14,16 +14,9 @@ concept IsShader = std::derived_from<T, detail::ShaderBase>;
 class Program
 {
 public:
+	Program() { mProgId = glCreateProgram(); }
 
-	Program ()
-	{
-		mProgId = glCreateProgram();
-	}
-
-	~Program()
-	{
-		glDeleteProgram(mProgId);
-	}
+	~Program() { glDeleteProgram(mProgId); }
 
 	std::string GetInfoLog() const
 	{
@@ -51,14 +44,15 @@ public:
 		glValidateProgram(mProgId);
 		GLint status;
 		glGetProgramiv(mProgId, GL_VALIDATE_STATUS, &status);
-		if(status == GL_FALSE)
+		if (status == GL_FALSE)
 			throw std::runtime_error(absl::StrFormat("Unable to use program\n%s", GetInfoLog()));
 		glUseProgram(mProgId);
 	}
-private:
 
-	template<IsShader  ShaderT>
-	void SetupShaders(ShaderT& shader) {
+private:
+	template<IsShader ShaderT>
+	void SetupShaders(ShaderT& shader)
+	{
 		shader.Compile();
 		glAttachShader(mProgId, shader.Id());
 	}
@@ -72,5 +66,5 @@ private:
 	GLint mProgId;
 };
 
-}
+} // namespace core_gfx::open_gl
 #endif // PROGRAM_H
