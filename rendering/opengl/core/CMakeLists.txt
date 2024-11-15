@@ -5,6 +5,7 @@ add_library(core-gfx SHARED
     Program.h
     utils/Errors.h
     utils/Errors.cpp
+    buffers/VertexArrayBuffer.h buffers/VertexArrayBuffer.cpp
 )
 
 target_link_libraries(core-gfx

@@ -12,7 +12,7 @@ class GlfwImpl;
 class Glfw : public Ui
 {
 public:
-	Glfw(int versionMaajor = 4, int versionMinor = 4, int width = 500, int height = 500);
+	Glfw(int versionMaajor = 4, int versionMinor = 4, int width = 1000, int height = 1000);
 	virtual ~Glfw();
 	void Run(std::function<bool()>&& functor) final;
 
