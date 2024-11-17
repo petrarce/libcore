@@ -13,6 +13,7 @@ namespace core_gfx::open_gl
 
 namespace detail
 {
+
 class ShaderBase
 {
 public:
