@@ -3,7 +3,7 @@
 #include "GLMesaTestFixture.h"
 
 #include <boost/test/unit_test.hpp>
-#include <Shader.h>
+#include <programs/Shader.h>
 #include <string>
 #include <glad/glad.h>
 

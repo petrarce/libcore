@@ -1,6 +1,6 @@
 #include <ui/Glfw.h>
 #include <glad/glad.h>
-#include <Program.h>
+#include <programs/Program.h>
 #include <buffers/VertexArrayBuffer.h>
 using namespace opengl::ui;
 using namespace core_gfx::open_gl;

@@ -1,8 +1,8 @@
 add_library(core-gfx SHARED
-    Shader.cpp
-    Shader.h
-    Program.cpp
-    Program.h
+    programs/Shader.cpp
+    programs/Shader.h
+    programs/Program.cpp
+    programs/Program.h
     utils/Errors.h
     utils/Errors.cpp
     buffers/VertexArrayBuffer.h
