@@ -24,4 +24,9 @@ void Program::Use()
 	glUseProgram(mProgId);
 }
 
+GLint Program::GetLocation(const std::string& name) const
+{
+	return glGetUniformLocation(mProgId, name.c_str());
+}
+
 } // namespace core_gfx::open_gl

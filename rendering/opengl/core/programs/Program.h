@@ -32,6 +32,7 @@ public:
 	}
 
 	void Use();
+	GLint GetLocation(const std::string& name) const;
 
 private:
 	template<IsShader ShaderT>

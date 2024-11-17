@@ -28,8 +28,8 @@ public:
 	void Use();
 	void Unuse();
 
-	template<class... Args>
-	void Init(Args&&... args)
+	template<class... Args, IsBufferType T>
+	void Init(const std::vector<T>& buffer, int componentsCnt, Args&&... args)
 	{
 		Deinit();
 		GLuint vao;
@@ -40,7 +40,7 @@ public:
 		try
 		{
 			mVBO = std::vector<GLuint>{};
-			InitArrayBuffer(0, std::nullopt, std::forward<Args>(args)...);
+			InitArrayBuffer(0, std::nullopt, buffer, componentsCnt, std::forward<Args>(args)...);
 		}
 		catch (const std::exception& e)
 		{
@@ -53,10 +53,14 @@ public:
 			throw std::runtime_error("Unknown error...");
 		}
 
+		mElements = buffer.size() / componentsCnt;
 		mVAO = vao;
 		glBindVertexArray(0);
 	}
 	void Deinit();
+	const int Elements() const { return mElements.value_or(0); }
+
+	std::vector<int> ListEnabledAttributes();
 
 private:
 	template<IsBufferType T>
@@ -118,8 +122,9 @@ private:
 							std::forward<Args>(args)...);
 	}
 
-	std::optional<GLuint> mVAO{ 0 };
+	std::optional<GLuint> mVAO;
 	std::optional<std::vector<GLuint> > mVBO;
+	std::optional<int> mElements;
 };
 
 } // namespace core_gfx::open_gl
