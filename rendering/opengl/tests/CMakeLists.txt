@@ -1,6 +1,6 @@
 return_if_not_target( core::gfx )
 add_boost_test(
-    NAME core-gfx
+    NAME core-gfx-test
     SOURCES
         main.cpp
         tst_shader.cpp

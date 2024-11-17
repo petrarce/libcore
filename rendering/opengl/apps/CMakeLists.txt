@@ -5,7 +5,7 @@ target_link_libraries(test1
         core::gfx
     )
 
-add_boost_test(NAME test2-vertex-buffer
+add_executable_test(NAME test2-vertex-buffer
     SOURCES test2.cpp
     LINK
         gfx::ui

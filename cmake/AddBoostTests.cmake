@@ -1,25 +1,21 @@
 find_package(Boost COMPONENTS unit_test_framework REQUIRE)
 
-function(add_boost_test)
-
+function(add_executable_test)
     set(options OPTIONAL)
     set(oneValueArgs NAME)
     set(multiValueArgs SOURCES LINK DEPENDENCES RESOURCES)
     cmake_parse_arguments(BOOSTTEST "${options}" "${oneValueArgs}"
                         "${multiValueArgs}" "${ARGN}")
 
-    set(TESTNAME "${BOOSTTEST_NAME}-test")
+    set(TESTNAME "${BOOSTTEST_NAME}")
 
     add_executable("${TESTNAME}" "${BOOSTTEST_SOURCES}")
 
-    target_link_libraries("${TESTNAME}" PRIVATE Boost::unit_test_framework
-                                              "${BOOSTTEST_LINK}")
+    target_link_libraries("${TESTNAME}" PRIVATE "${BOOSTTEST_LINK}")
 
     if(NOT "${BOOSTTEST_DEPENDENCES}" STREQUAL "")
         add_dependencies("${TESTNAME}" "${BOOSTTEST_DEPENDENCES}")
     endif()
-
-    add_test(NAME "${TESTNAME}" COMMAND "${TESTNAME}")
 
     message("BOOSTTEST_RESOURCES=${BOOSTTEST_RESOURCES}")
     if(NOT "${BOOSTTEST_RESOURCES}" STREQUAL "")
@@ -39,4 +35,22 @@ function(add_boost_test)
         add_custom_target( ${TESTNAME}-resources DEPENDS ${OUTPUT_RESOURCES} )
         add_dependencies( ${TESTNAME} ${TESTNAME}-resources )
     endif()
+
+endfunction()
+
+function(add_boost_test)
+    set(options OPTIONAL)
+    set(oneValueArgs NAME)
+    set(multiValueArgs SOURCES LINK DEPENDENCES RESOURCES)
+    cmake_parse_arguments(BOOSTTEST "${options}" "${oneValueArgs}"
+                        "${multiValueArgs}" "${ARGN}")
+
+    add_executable_test(NAME ${BOOSTTEST_NAME}
+        SOURCES ${BOOSTTEST_SOURCES}
+        LINK ${BOOSTTEST_LINK} Boost::unit_test_framework
+        DEPENDENCES ${BOOSTTEST_DEPENDENCES}
+        RESOURCES ${BOOSTTEST_RESOURCES}
+    )
+
+    add_test(NAME "${BOOSTTEST_NAME}" COMMAND "${BOOSTTEST_NAME}")
 endfunction()
