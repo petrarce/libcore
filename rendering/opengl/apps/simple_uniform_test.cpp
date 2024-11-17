@@ -7,7 +7,8 @@ using namespace core_gfx::open_gl;
 
 int main()
 {
-	Glfw glfwWindow;
+	Glfw glfwWindow(4, 4, 1000, 1000,
+					[](int width, int height) { glViewport(0, 0, width, height); });
 	gladLoadGL();
 
 	VertexShader vs(std::filesystem::path("simple_uniform_test/vert.glsl"));
@@ -18,7 +19,7 @@ int main()
 
 	const auto colorLoc = prog.GetLocation("color");
 	VertexArrayBuffer buf;
-	buf.Init(std::vector<int>{ -1, -1, 1, 1, 1, -1 }, 2);
+	buf.Init(std::vector<float>{ -0.5, -0.5, 0.5, 0.5, 0.5, -0.5 }, 2);
 
 	float color = 0;
 	glDepthFunc(GL_ALWAYS);
