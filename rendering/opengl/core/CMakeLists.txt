@@ -20,5 +20,3 @@ target_link_libraries(core-gfx
 add_library(core::gfx ALIAS core-gfx)
 
 target_include_directories(core-gfx PUBLIC .)
-
-target_compile_options(core-gfx PUBLIC -g -O0)
