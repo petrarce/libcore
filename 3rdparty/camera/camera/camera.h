@@ -110,7 +110,7 @@
 
 /* World and mode defines */
 
-#define CAMERA_WORLD_FORWARD                CameraVec3(0.0f, 0.0f, 1.0f)
+#define CAMERA_WORLD_FORWARD                CameraVec3(0.0f, 0.0f, -1.0f)
 #define CAMERA_WORLD_UP                     CameraVec3(0.0f, 1.0f, 0.0f)
 #define CAMERA_WORLD_RIGHT                  CameraVec3(1.0f, 0.0f, 0.0f)
 
