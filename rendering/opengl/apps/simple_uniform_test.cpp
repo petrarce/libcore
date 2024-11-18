@@ -43,8 +43,6 @@ int main()
 			const auto rotation = CameraVec3{ -static_cast<float>(dxdyf.y / 180.f * M_PI),
 											  -static_cast<float>(dxdyf.x / 180.f * M_PI), 0 };
 			camera_rotate(&camera, rotation);
-
-			std::cout << xy << dxdy << std::endl;
 		});
 	gladLoadGL();
 
@@ -93,7 +91,7 @@ int main()
 
 	float color = 0;
 	glDepthFunc(GL_ALWAYS);
-	glDisable(GL_CULL_FACE);
+	glEnable(GL_CULL_FACE);
 
 	glfwWindow.Run(
 		[&]()
