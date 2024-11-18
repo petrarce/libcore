@@ -14,3 +14,14 @@ add_executable_test(NAME test2-vertex-buffer
         test2/frag.glsl
         test2/vert.glsl
 )
+
+add_executable_test(NAME simple-uniform-test
+    SOURCES simple_uniform_test.cpp
+    LINK
+        gfx::ui
+        core::gfx
+        camera::camera
+    RESOURCES
+        simple_uniform_test/vert.glsl
+        simple_uniform_test/frag.glsl
+)

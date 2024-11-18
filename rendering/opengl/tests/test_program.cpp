@@ -3,8 +3,8 @@
 
 #include <boost/test/unit_test.hpp>
 #include "GLMesaTestFixture.h"
-#include <Program.h>
-#include <Shader.h>
+#include <programs/Program.h>
+#include <programs/Shader.h>
 #include <utils/Errors.h>
 
 using namespace core_gfx::open_gl;

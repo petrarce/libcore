@@ -1,9 +1,8 @@
 #ifndef PROGRAM_H
 #define PROGRAM_H
-#include "Shader.h"
+#include "programs/Shader.h"
 #include <glad/glad.h>
 #include <concepts>
-#include <optional>
 
 namespace core_gfx::open_gl
 {
@@ -14,18 +13,11 @@ concept IsShader = std::derived_from<T, detail::ShaderBase>;
 class Program
 {
 public:
-	Program() { mProgId = glCreateProgram(); }
+	Program();
 
-	~Program() { glDeleteProgram(mProgId); }
+	~Program();
 
-	std::string GetInfoLog() const
-	{
-		GLint logsize;
-		glGetProgramiv(mProgId, GL_INFO_LOG_LENGTH, &logsize);
-		std::string log(logsize, 0);
-		glGetProgramInfoLog(mProgId, logsize, nullptr, log.data());
-		return log;
-	}
+	std::string GetInfoLog() const;
 
 	template<IsShader ShaderT, class... Args>
 	void Setup(ShaderT& shader, Args&&... shaders)
@@ -39,15 +31,8 @@ public:
 			throw std::runtime_error(absl::StrFormat("Failed to link program\n%s", GetInfoLog()));
 	}
 
-	void Use()
-	{
-		glValidateProgram(mProgId);
-		GLint status;
-		glGetProgramiv(mProgId, GL_VALIDATE_STATUS, &status);
-		if (status == GL_FALSE)
-			throw std::runtime_error(absl::StrFormat("Unable to use program\n%s", GetInfoLog()));
-		glUseProgram(mProgId);
-	}
+	void Use();
+	GLint GetLocation(const std::string& name) const;
 
 private:
 	template<IsShader ShaderT>
