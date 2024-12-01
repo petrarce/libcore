@@ -7,6 +7,8 @@ add_library(core-gfx SHARED
     utils/Errors.cpp
     buffers/VertexArrayBuffer.h
     buffers/VertexArrayBuffer.cpp
+    buffers/TexturedVertexArrayBuffer.h
+    buffers/TexturedVertexArrayBuffer.cpp
 )
 
 target_link_libraries(core-gfx
@@ -15,6 +17,7 @@ target_link_libraries(core-gfx
         glad::glad
         absl::strings
         absl::flags
+        soil2
     )
 
 add_library(core::gfx ALIAS core-gfx)

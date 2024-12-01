@@ -25,13 +25,12 @@ public:
 	~VertexArrayBuffer();
 	;
 
-	void Use();
-	void Unuse();
+	virtual void Use();
+	virtual void Unuse();
 
 	template<class... Args, IsBufferType T>
 	void Init(const std::vector<T>& buffer, int componentsCnt, Args&&... args)
 	{
-		Deinit();
 		ConstructVAOandVBOs(buffer, componentsCnt, std::forward<Args>(args)...);
 		mElements = buffer.size() / componentsCnt;
 		glBindVertexArray(0);
@@ -43,7 +42,9 @@ public:
 	void InitElements(const std::vector<uint32_t>& indices, const std::vector<T>& buffer,
 					  int componentsCnt, Args&&... args)
 	{
-		Deinit();
+		if (mEBO.has_value())
+			throw std::runtime_error("Dirty state of the VAO");
+
 		ConstructVAOandVBOs(buffer, componentsCnt, std::forward<Args>(args)...);
 
 		GLuint ebo = 0;
@@ -58,7 +59,7 @@ public:
 		if (utils::CheckErrors())
 			throw std::runtime_error("Failed to create indexed buffer");
 	}
-	void Deinit();
+	virtual void Deinit();
 	const int Elements() const { return mElements.value(); }
 	const bool HasIndices() const { return mEBO.has_value(); }
 	std::vector<int> ListEnabledAttributes();
@@ -126,6 +127,9 @@ private:
 	template<class... Args, IsBufferType T>
 	void ConstructVAOandVBOs(const std::vector<T>& buffer, int componentsCnt, Args&&... args)
 	{
+		if (mVAO.has_value() || mVBO.has_value())
+			throw std::runtime_error("The State of VAO is dirty");
+
 		GLuint vao;
 		// Generate vertex array and bind
 		glGenVertexArrays(1, &vao);
