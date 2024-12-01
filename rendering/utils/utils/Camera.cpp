@@ -60,8 +60,8 @@ void Camera::Move(float fwd, float right) { camera_move(&impl->camera, { fwd, 0,
 
 void Camera::MoveTowardsTarget(float in)
 {
-	float interpolant = (std::min(101.f, std::max(1.f, impl->camera.target_distance)) - 1) / 100.f;
-	interpolant = std::sqrt(interpolant);
+	float interpolant = (std::min(101.f, std::max(1.f, impl->camera.target_distance))) / 101.f;
+	interpolant = std::max(0.2f, std::sqrt(interpolant));
 	impl->camera.target_distance
 		= std::min(100.f, std::max(1.f, impl->camera.target_distance + in * interpolant));
 }
