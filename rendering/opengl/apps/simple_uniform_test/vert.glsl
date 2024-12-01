@@ -4,7 +4,7 @@ layout(location = 0) in vec3 position;
 
 uniform mat4 vpmat;
 
-layout(location = 0)out vec3 vcolor;
+layout(location = 0) out vec3 vcolor;
 
 void main() {
     gl_Position = vpmat * vec4(position, 1);
