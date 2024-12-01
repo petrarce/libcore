@@ -1,6 +1,7 @@
 #ifndef lkajsdkjasd
 #define lkajsdkjasd
 #include <functional>
+#include <utils/Camera.h>
 namespace opengl::ui
 {
 
@@ -17,6 +18,10 @@ public:
 	Ui& operator=(Ui&&) = delete;
 
 	virtual void Run(std::function<bool()>&& functor) = 0;
+	glm::mat4 DefaultCamView() { return mDefaultCamera.ViewMatrix(); }
+
+protected:
+	rendering::utils::Camera mDefaultCamera;
 };
 
 } // namespace opengl::ui

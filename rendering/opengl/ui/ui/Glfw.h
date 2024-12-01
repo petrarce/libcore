@@ -13,18 +13,21 @@ class GlfwImpl;
 class Glfw : public Ui
 {
 public:
-	Glfw(
+	explicit Glfw(
 		int versionMaajor = 4, int versionMinor = 4, int width = 1000, int height = 1000,
 		std::function<void(int, int)>&& resizeCallback = [](int, int) {},
 		std::function<void(const glm::ivec2& /*xy pos*/, const glm::ivec2& /*dx/dy offset*/)>&&
 			cursorMoveCallback
-		= [](const glm::ivec2&, const glm::ivec2&) {});
+		= [](const glm::ivec2&, const glm::ivec2&) {},
+		std::function<void(double, double)> scrollCallback = [](double, double) {});
 	virtual ~Glfw();
 	void Run(std::function<bool()>&& functor) final;
 	void Resize(int width, int height);
 	void CursorMove(int x, int y);
-	bool IsLeftMButtonPressed();
-	bool IsRightMButtonPressed();
+	void Scroll(double xoffset, double yoffset);
+	bool IsLeftMButtonPressed() const;
+	bool IsRightMButtonPressed() const;
+	bool IsShiftPressed() const;
 
 private:
 	std::unique_ptr<detail::GlfwImpl> impl;
