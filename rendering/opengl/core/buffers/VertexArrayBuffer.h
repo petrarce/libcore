@@ -32,34 +32,35 @@ public:
 	void Init(const std::vector<T>& buffer, int componentsCnt, Args&&... args)
 	{
 		Deinit();
-		GLuint vao;
-		// Generate vertex array and bind
-		glGenVertexArrays(1, &vao);
-		glBindVertexArray(vao);
-
-		try
-		{
-			mVBO = std::vector<GLuint>{};
-			InitArrayBuffer(0, std::nullopt, buffer, componentsCnt, std::forward<Args>(args)...);
-		}
-		catch (const std::exception& e)
-		{
-			Deinit();
-			throw std::runtime_error(e.what());
-		}
-		catch (...)
-		{
-			Deinit();
-			throw std::runtime_error("Unknown error...");
-		}
-
+		ConstructVAOandVBOs(buffer, componentsCnt, std::forward<Args>(args)...);
 		mElements = buffer.size() / componentsCnt;
-		mVAO = vao;
 		glBindVertexArray(0);
+		if (utils::CheckErrors())
+			throw std::runtime_error("Failed to create buffer");
+	}
+
+	template<class... Args, IsBufferType T>
+	void InitElements(const std::vector<uint32_t>& indices, const std::vector<T>& buffer,
+					  int componentsCnt, Args&&... args)
+	{
+		Deinit();
+		ConstructVAOandVBOs(buffer, componentsCnt, std::forward<Args>(args)...);
+
+		GLuint ebo = 0;
+		glGenBuffers(1, &ebo);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint32_t), indices.data(),
+					 GL_STATIC_DRAW);
+		mEBO = ebo;
+		mElements = indices.size();
+		// unbind VAO
+		glBindVertexArray(0);
+		if (utils::CheckErrors())
+			throw std::runtime_error("Failed to create indexed buffer");
 	}
 	void Deinit();
-	const int Elements() const { return mElements.value_or(0); }
-
+	const int Elements() const { return mElements.value(); }
+	const bool HasIndices() const { return mEBO.has_value(); }
 	std::vector<int> ListEnabledAttributes();
 
 private:
@@ -122,7 +123,35 @@ private:
 							std::forward<Args>(args)...);
 	}
 
+	template<class... Args, IsBufferType T>
+	void ConstructVAOandVBOs(const std::vector<T>& buffer, int componentsCnt, Args&&... args)
+	{
+		GLuint vao;
+		// Generate vertex array and bind
+		glGenVertexArrays(1, &vao);
+		glBindVertexArray(vao);
+
+		try
+		{
+			mVBO = std::vector<GLuint>{};
+			InitArrayBuffer(0, std::nullopt, buffer, componentsCnt, std::forward<Args>(args)...);
+		}
+		catch (const std::exception& e)
+		{
+			Deinit();
+			throw std::runtime_error(e.what());
+		}
+		catch (...)
+		{
+			Deinit();
+			throw std::runtime_error("Unknown error...");
+		}
+
+		mVAO = vao;
+	}
+
 	std::optional<GLuint> mVAO;
+	std::optional<GLuint> mEBO;
 	std::optional<std::vector<GLuint> > mVBO;
 	std::optional<int> mElements;
 };

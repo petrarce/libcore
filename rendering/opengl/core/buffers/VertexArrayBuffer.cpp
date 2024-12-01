@@ -15,9 +15,14 @@ void VertexArrayBuffer::Deinit()
 		glDeleteBuffers(mVBO.value().size(), mVBO.value().data());
 
 	if (mVAO.has_value())
-		glDeleteVertexArrays(1, &(mVAO.value()));
+		glDeleteVertexArrays(1, &mVAO.value());
+
+	if (mEBO.has_value())
+		glDeleteBuffers(1, &mEBO.value());
+
 	mVBO.reset();
 	mVAO.reset();
+	mEBO.reset();
 	mElements.reset();
 }
 

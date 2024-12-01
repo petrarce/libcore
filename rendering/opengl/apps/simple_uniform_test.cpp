@@ -40,6 +40,7 @@ int main()
 	const auto vpmatLoc = prog.GetLocation("vpmat");
 
 	VertexArrayBuffer buf;
+	// clang-format off
 	buf.Init(
 		std::vector<float>{
 			// Front face
@@ -72,18 +73,45 @@ int main()
 			1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, // Triangle 2
 			1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f },
 		3);
+	VertexArrayBuffer piramid;
+	piramid.InitElements(
+		std::vector<uint32_t>{
+			// Base
+			0, 1, 2,
+			2, 3, 0,
+			// Sides
+			0, 1, 4,
+			1, 2, 4,
+			2, 3, 4,
+			3, 0, 4
+		},
+		std::vector<float>{
+			5 + -0.5f, 0.0f, 5 + -0.5f,  // Bottom-left
+			5 + 0.5f,  0.0f, 5 + -0.5f,  // Bottom-right
+			5 + 0.5f,  0.0f, 5 +  0.5f,  // Top-right
+			5 + -0.5f, 0.0f, 5 +  0.5f,  // Top-left
+			5 + 0.0f,  2.0f, 5 +  0.0f   // Apex
+		}, 3);
+	// clang-format on
 
+	auto drawBuf = [](VertexArrayBuffer& buf)
+	{
+		buf.Use();
+		if (!buf.HasIndices())
+			glDrawArrays(GL_TRIANGLES, 0, buf.Elements());
+		else
+			glDrawElements(GL_TRIANGLES, buf.Elements(), GL_UNSIGNED_INT, 0);
+		buf.Unuse();
+	};
 	float color = 0;
-	glDepthFunc(GL_ALWAYS);
 	glDisable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_GREATER);
 
 	glfwWindow.Run(
 		[&]()
 		{
 			glClearColor(0, 0, 0, 1);
-			glClearDepth(0.f);
+			glClearDepth(1.f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			GLint viewport[4];
@@ -97,10 +125,9 @@ int main()
 			color = (color + 0.01) - static_cast<int>(color + 0.01);
 			glUniform1f(colorLoc, color);
 			glUniformMatrix4fv(vpmatLoc, 1, false, glm::value_ptr(vpmat));
+			drawBuf(buf);
+			drawBuf(piramid);
 
-			buf.Use();
-			glDrawArrays(GL_TRIANGLES, 0, buf.Elements());
-			buf.Unuse();
 			return false;
 		});
 	return 0;
