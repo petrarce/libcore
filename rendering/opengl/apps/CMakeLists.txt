@@ -20,7 +20,7 @@ add_executable_test(NAME simple-uniform-test
     LINK
         gfx::ui
         core::gfx
-        camera::camera
+        rendering-utils
     RESOURCES
         simple_uniform_test/vert.glsl
         simple_uniform_test/frag.glsl

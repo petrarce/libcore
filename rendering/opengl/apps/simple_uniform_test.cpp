@@ -1,13 +1,15 @@
 #include <ui/Glfw.h>
 #include <programs/Program.h>
 #include <buffers/VertexArrayBuffer.h>
-#include <camera/camera.h>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <cmath>
+#include <utils/Camera.h>
+
 using namespace opengl::ui;
 using namespace core_gfx::open_gl;
+using namespace rendering::utils;
 
 namespace glm
 {
@@ -24,26 +26,8 @@ std::ostream& operator<<(std::ostream& s, const glm::vec<N, T, Q>& vec)
 
 int main()
 {
-	auto camera = camera_init();
-	camera.mode = CAMERA_MODE_THIRD_PERSON;
-	camera.minPitch = -M_PI_4;
-	camera.maxPitch = M_PI_4;
-	camera.target_distance = 5;
-	camera.target_position = CameraVec3{ 0, 0, 0 };
-
-	Glfw glfwWindow(
-		4, 4, 1000, 1000, [](int width, int height) { glViewport(0, 0, width, height); },
-		[&](const glm::ivec2& xy, const glm::ivec2& dxdy)
-		{
-			if (!glfwWindow.IsLeftMButtonPressed())
-				return;
-
-			glm::vec2 dxdyf = dxdy;
-
-			const auto rotation = CameraVec3{ -static_cast<float>(dxdyf.y / 180.f * M_PI),
-											  -static_cast<float>(dxdyf.x / 180.f * M_PI), 0 };
-			camera_rotate(&camera, rotation);
-		});
+	Glfw glfwWindow(4, 4, 1000, 1000,
+					[](int width, int height) { glViewport(0, 0, width, height); });
 	gladLoadGL();
 
 	VertexShader vs(std::filesystem::path("simple_uniform_test/vert.glsl"));
@@ -91,23 +75,24 @@ int main()
 
 	float color = 0;
 	glDepthFunc(GL_ALWAYS);
-	glEnable(GL_CULL_FACE);
+	glDisable(GL_CULL_FACE);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_GREATER);
 
 	glfwWindow.Run(
 		[&]()
 		{
 			glClearColor(0, 0, 0, 1);
-			glClearDepth(1.f);
+			glClearDepth(0.f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			GLint viewport[4];
 			glGetIntegerv(GL_VIEWPORT, viewport);
 			glm::vec2 viewportPos{ viewport[0], viewport[1] };
 			glm::vec2 viewportSize{ viewport[2], viewport[3] };
-			glm::mat4 view, persp;
-
-			camera_view_matrix(&camera, glm::value_ptr(view));
-			persp = glm::perspective<float>(M_PI_4, viewportSize.x / viewportSize.y, 0.01, 1000.);
+			glm::mat4 view = glfwWindow.DefaultCamView();
+			glm::mat4 persp
+				= glm::perspective<float>(M_PI_4, viewportSize.x / viewportSize.y, 0.01, 100.);
 			const auto vpmat = persp * view;
 			color = (color + 0.01) - static_cast<int>(color + 0.01);
 			glUniform1f(colorLoc, color);

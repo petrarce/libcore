@@ -15,6 +15,13 @@ void CursorMoveCallback(GLFWwindow* window, double xpos, double ypos)
 	opengl::ui::Glfw* ptr = static_cast<opengl::ui::Glfw*>(glfwGetWindowUserPointer(window));
 	ptr->CursorMove(xpos, ypos);
 }
+
+void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	opengl::ui::Glfw* ptr = static_cast<opengl::ui::Glfw*>(glfwGetWindowUserPointer(window));
+
+	ptr->Scroll(xoffset, yoffset);
+}
 } // namespace
 
 namespace opengl::ui
@@ -38,6 +45,7 @@ public:
 	GLFWwindowUniquePtr window;
 	std::function<void(int, int)> resizeCallback;
 	std::function<void(const glm::ivec2&, const glm::ivec2&)> cursorMoveCallback;
+	std::function<void(double, double)> scrollCallback;
 	glm::ivec2 cursorPos;
 };
 
@@ -45,7 +53,8 @@ public:
 
 Glfw::Glfw(int vmajor, int vminor, int width, int height,
 		   std::function<void(int, int)>&& resizeCallback,
-		   std::function<void(const glm::ivec2&, const glm::ivec2&)>&& cursorMoveCallback)
+		   std::function<void(const glm::ivec2&, const glm::ivec2&)>&& cursorMoveCallback,
+		   std::function<void(double, double)> scrollCallback)
 	: Ui()
 {
 	glfwInit();
@@ -54,11 +63,13 @@ Glfw::Glfw(int vmajor, int vminor, int width, int height,
 	impl = std::make_unique<detail::GlfwImpl>(width, height, "GlfwWindow");
 	impl->resizeCallback = resizeCallback;
 	impl->cursorMoveCallback = cursorMoveCallback;
+	impl->scrollCallback = scrollCallback;
 	glfwMakeContextCurrent(impl->window.get());
 	glfwSwapInterval(1);
 	glfwSetWindowUserPointer(impl->window.get(), this);
 	glfwSetFramebufferSizeCallback(impl->window.get(), FramebufferResizeCallback);
 	glfwSetCursorPosCallback(impl->window.get(), CursorMoveCallback);
+	glfwSetScrollCallback(impl->window.get(), ScrollCallback);
 }
 
 Glfw::~Glfw()
@@ -83,16 +94,40 @@ void Glfw::CursorMove(int x, int y)
 	glm::ivec2 dmove = glm::ivec2{ x, y } - impl->cursorPos;
 	impl->cursorMoveCallback({ x, y }, dmove);
 	impl->cursorPos += dmove;
+
+	const glm::vec2 dxdyf = dmove;
+	if (IsLeftMButtonPressed())
+	{
+
+		if (IsShiftPressed())
+			mDefaultCamera.Move(dxdyf.y / 50, -dxdyf.x / 50);
+		else
+			mDefaultCamera.Rotate(glm::vec3{ -static_cast<float>(dxdyf.x / 180.f * M_PI),
+											 -static_cast<float>(dxdyf.y / 180.f * M_PI), 0 });
+	}
 }
 
-bool Glfw::IsLeftMButtonPressed()
+void Glfw::Scroll(double xoffset, double yoffset)
+{
+	mDefaultCamera.MoveTowardsTarget(-yoffset);
+
+	impl->scrollCallback(xoffset, yoffset);
+}
+
+bool Glfw::IsLeftMButtonPressed() const
 {
 	return GLFW_PRESS == glfwGetMouseButton(impl->window.get(), GLFW_MOUSE_BUTTON_LEFT);
 }
 
-bool Glfw::IsRightMButtonPressed()
+bool Glfw::IsRightMButtonPressed() const
 {
 	return GLFW_PRESS == glfwGetMouseButton(impl->window.get(), GLFW_MOUSE_BUTTON_RIGHT);
+}
+
+bool Glfw::IsShiftPressed() const
+{
+	return glfwGetKey(impl->window.get(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS
+		   || glfwGetKey(impl->window.get(), GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS;
 }
 
 } // namespace opengl::ui
