@@ -24,4 +24,8 @@ add_executable_test(NAME simple-uniform-test
     RESOURCES
         simple_uniform_test/vert.glsl
         simple_uniform_test/frag.glsl
+        simple_uniform_test/frag_diff.glsl
+        simple_uniform_test/vert_diff.glsl
+        simple_uniform_test/bricks.jpg
+
 )
