@@ -50,7 +50,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":android:lib"))
+    implementation(project(":lib"))  // Changed from ":android:lib" to ":lib"
     
     // Core Android
     implementation(libs.android.core.ktx)
