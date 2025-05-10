@@ -10,6 +10,7 @@ espresso-core = "3.5.1"
 compose-bom = "2023.10.01"
 material3 = "1.1.2"
 activity-compose = "1.8.0"
+compose-compiler = "1.5.3"
 
 [libraries]
 android-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
