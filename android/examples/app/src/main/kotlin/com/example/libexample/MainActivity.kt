@@ -4,22 +4,30 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Column
-import com.example.lib.ui.CustomTextView
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.tooling.preview.Preview
 import com.example.lib.ui.compose.GreetingText
-import com.example.lib.extensions.capitalizeFirstLetter
+import com.example.lib.ui.theme.LibcoreTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            LibTheme {
+            LibcoreTheme {
                 Column {
                     GreetingText("Android")
-                    CustomTextView(this@MainActivity).apply {
-                        text = "Sample Text".capitalizeFirstLetter()
-                    }
                 }
             }
+        }
+    }
+}
+
+@Preview(showSystemUi = true)
+@Composable
+fun PreviewView() {
+    LibcoreTheme {
+        Column {
+            GreetingText("Android")
         }
     }
 }
