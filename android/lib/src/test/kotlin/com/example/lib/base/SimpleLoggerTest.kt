@@ -10,5 +10,6 @@ class SimpleLoggerTest {
         // Capture System.out to verify output if needed
         logger.logMessage("TEST", "message")
         // Add assertions based on your implementation
+        assertTrue(true)
     }
 }

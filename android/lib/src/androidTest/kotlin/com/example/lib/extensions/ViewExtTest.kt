@@ -11,7 +11,7 @@ import org.junit.Assert.*
 class ViewExtTest {
     @Test
     fun testViewVisibility() {
-        val view = TestView(ApplicationProvider.getApplicationContext())
+        val view = View(ApplicationProvider.getApplicationContext())
         view.hide()
         assertEquals(View.GONE, view.visibility)
     }
