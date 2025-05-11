@@ -21,4 +21,4 @@ jobs:
         cache: gradle
 
     - name: Build with Gradle
-      run: ./android/gradlew -p ./android build
+      run: ./android/gradlew -p ./android assembleRelease --max-workers 2
