@@ -6,8 +6,9 @@ pluginManagement {
     }
     plugins {
         id("com.android.application") version "8.2.0"
-        id("com.android.library") version "8.2.0" 
+        id("com.android.library") version "8.2.0"
         id("org.jetbrains.kotlin.android") version "1.9.22"
+        id("com.dorongold.task-tree") version "4.0.1"
     }
 }
 
@@ -17,10 +18,6 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
     }
-}
-
-plugins {
-    id("com.dorongold.task-tree") version "4.0.1"
 }
 
 rootProject.name = "AndroidLibs"

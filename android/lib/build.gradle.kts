@@ -1,6 +1,7 @@
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
+    id("com.dorongold.task-tree")
 }
 
 android {
@@ -48,12 +49,12 @@ dependencies {
     implementation(libs.android.core.ktx)
     implementation(libs.android.appcompat)
     implementation(libs.lifecycle.runtime)
-    
+
     // Compose
     implementation(platform(libs.compose.bom))
     implementation(libs.bundles.compose)
     androidTestImplementation(platform(libs.compose.bom))
-    
+
     // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext)
