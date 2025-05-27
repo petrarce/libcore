@@ -5,12 +5,14 @@
 #ifndef SHAREDSTORAGEBUFFER_H
 #define SHAREDSTORAGEBUFFER_H
 
+#include "BufferObjectBase.h"
+
 namespace core_gfx
 {
 namespace open_gl
 {
 
-class SharedStorageBuffer
+class SharedStorageBuffer : public BufferObjectBase
 {
 };
 
