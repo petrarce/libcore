@@ -7,6 +7,7 @@ add_boost_test(
         test_program.cpp
         test_arraybuffertests.cpp
         test_compute_shader.cpp
+        test_buffer_objects.cpp
     LINK
         core::gfx
         OSMesa::OSMesa
