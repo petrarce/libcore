@@ -54,7 +54,21 @@ private:
     void* mBufferPtr = nullptr;
 };
 
-// document the code ai!
+/**
+ * @brief Templated OpenGL buffer object wrapper
+ * 
+ * @tparam Tgt The OpenGL buffer target (e.g. GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER)
+ * 
+ * This class provides a type-safe interface for creating and managing OpenGL buffer objects.
+ * It inherits from BufferObjectBase for basic buffer management and adds templated
+ * data upload functionality.
+ * 
+ * Features:
+ * - Type-safe data upload via std::vector
+ * - Configurable usage hints
+ * - RAII resource management
+ * - Supports mapping via MapBuffer friend class
+ */
 template<GLenum Tgt>
 class BufferObject : public BufferObjectBase {
     friend MapBuffer<BufferObject<Tgt>>;
