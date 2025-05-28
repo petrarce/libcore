@@ -54,6 +54,7 @@ private:
     void* mBufferPtr = nullptr;
 };
 
+// document the code ai!
 template<GLenum Tgt>
 class BufferObject : public BufferObjectBase {
     friend MapBuffer<BufferObject<Tgt>>;
