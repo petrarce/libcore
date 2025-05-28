@@ -11,7 +11,24 @@ namespace open_gl {
 template<class T>
 concept InBufferObject = std::is_base_of_v<BufferObjectBase, T>;
 
-// add documentation here, ai!
+/**
+ * @brief RAII wrapper for mapping OpenGL buffer objects
+ * 
+ * @tparam T BufferObject type that meets InBufferObject concept requirements
+ * 
+ * This class provides safe, scoped access to mapped buffer memory:
+ * - Automatically maps buffer on construction
+ * - Unmaps buffer on destruction (via RAII)
+ * - Supports different access types via template parameter
+ * 
+ * Usage example:
+ * @code
+ * {
+ *     MapBuffer<GL_WRITE_ONLY> mapped(buffer); // Maps buffer
+ *     // Access mapped data via mapped.RawPointer()
+ * } // Automatically unmaps when out of scope
+ * @endcode
+ */
 template<InBufferObject T>
 class MapBuffer
 {
