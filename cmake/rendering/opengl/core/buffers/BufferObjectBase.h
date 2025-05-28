@@ -3,20 +3,23 @@
 
 #include <glad/glad.h>
 
-namespace core_gfx {
-namespace open_gl {
+namespace core_gfx
+{
+namespace open_gl
+{
 
-class BufferObjectBase {
+class BufferObjectBase
+{
 public:
-    BufferObjectBase();
-    virtual ~BufferObjectBase();
+	BufferObjectBase();
+	virtual ~BufferObjectBase();
 
-    // Disallow copying
-    BufferObjectBase(const BufferObjectBase&) = delete;
-    BufferObjectBase& operator=(const BufferObjectBase&) = delete;
+	// Disallow copying
+	BufferObjectBase(const BufferObjectBase&) = delete;
+	BufferObjectBase& operator=(const BufferObjectBase&) = delete;
 
 protected:
-    GLuint m_id;
+	GLuint m_id;
 };
 
 } // namespace open_gl

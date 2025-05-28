@@ -38,17 +38,62 @@ class BufferObject : public BufferObjectBase
 	friend class MapBuffer<BufferObject<Tgt> >;
 
 public:
-	static const auto TargetValue = Tgt;
+	static constexpr GLenum TargetValue = Tgt;
+
+	// Disallow copying
+	BufferObject(const BufferObject&) = delete;
+	BufferObject& operator=(const BufferObject&) = delete;
+
+	// Allow moving
+	BufferObject(BufferObject&& other) noexcept
+		: BufferObjectBase(std::move(other))
+		, mAccessHint(other.mAccessHint)
+	{
+	}
+
+	BufferObject& operator=(BufferObject&& other) noexcept
+	{
+		if (this != &other)
+		{
+			BufferObjectBase::operator=(std::move(other));
+			mAccessHint = other.mAccessHint;
+		}
+		return *this;
+	}
+
 	template<typename T>
-	explicit BufferObject(const std::vector<T>& data, GLuint accessHint = GL_STATIC_DRAW)
+	explicit BufferObject(const std::vector<T>& data, GLenum accessHint = GL_STATIC_DRAW)
 		: mAccessHint(accessHint)
 	{
+		if (data.empty())
+		{
+			throw std::invalid_argument("Cannot create buffer with empty data");
+		}
 		glBindBuffer(Tgt, m_id);
 		glBufferData(Tgt, data.size() * sizeof(T), data.data(), mAccessHint);
 	}
 
+	template<typename T>
+	void UpdateData(const std::vector<T>& data, GLintptr offset = 0)
+	{
+		if (data.empty())
+		{
+			throw std::invalid_argument("Cannot update buffer with empty data");
+		}
+		glBindBuffer(Tgt, m_id);
+		glBufferSubData(Tgt, offset, data.size() * sizeof(T), data.data());
+	}
+
+	size_t GetSize() const noexcept
+	{
+		GLint size = 0;
+		glBindBuffer(Tgt, m_id);
+		glGetBufferParameteriv(Tgt, GL_BUFFER_SIZE, &size);
+		return static_cast<size_t>(size);
+	}
+
 private:
-	GLuint mAccessHint{ 0 };
+	GLenum mAccessHint{ GL_STATIC_DRAW };
 };
 
 /**
@@ -72,27 +117,63 @@ private:
 template<class T>
 class MapBuffer
 {
-	static_assert(IsBufferObject<T>);
+	static_assert(IsBufferObject<T>, "Template parameter must be a BufferObject type");
 
 public:
-	explicit MapBuffer(T& buffer, GLuint accessHint = GL_READ_ONLY)
+	explicit MapBuffer(T& buffer, GLenum accessHint = GL_READ_ONLY)
 		: mBuffer(buffer)
 	{
 		glBindBuffer(T::TargetValue, mBuffer.m_id);
 		mBufferPtr = glMapBuffer(T::TargetValue, accessHint);
+		if (!mBufferPtr)
+		{
+			throw std::runtime_error("Failed to map buffer");
+		}
 	}
-	~MapBuffer()
+
+	~MapBuffer() noexcept
 	{
-		if (mBufferPtr == nullptr)
-			return;
-		glBindBuffer(T::TargetValue, mBuffer.m_id);
-		glUnmapBuffer(T::TargetValue);
+		if (mBufferPtr)
+		{
+			glBindBuffer(T::TargetValue, mBuffer.m_id);
+			glUnmapBuffer(T::TargetValue);
+		}
 	}
-	void* RawPointer() const { return mBufferPtr; }
+
+	// Disallow copying
+	MapBuffer(const MapBuffer&) = delete;
+	MapBuffer& operator=(const MapBuffer&) = delete;
+
+	// Allow moving
+	MapBuffer(MapBuffer&& other) noexcept
+		: mBuffer(other.mBuffer)
+		, mBufferPtr(other.mBufferPtr)
+	{
+		other.mBufferPtr = nullptr;
+	}
+
+	MapBuffer& operator=(MapBuffer&& other) noexcept
+	{
+		if (this != &other)
+		{
+			mBuffer = other.mBuffer;
+			mBufferPtr = other.mBufferPtr;
+			other.mBufferPtr = nullptr;
+		}
+		return *this;
+	}
+
+	[[nodiscard]] void* RawPointer() const noexcept { return mBufferPtr; }
+
+	template<typename U>
+	[[nodiscard]] U* As() const noexcept
+	{
+		return static_cast<U*>(mBufferPtr);
+	}
 
 private:
 	T& mBuffer;
-	void* mBufferPtr = nullptr;
+	void* mBufferPtr{ nullptr };
 };
 
 using ShaderStorageBuffer = BufferObject<GL_SHADER_STORAGE_BUFFER>;
