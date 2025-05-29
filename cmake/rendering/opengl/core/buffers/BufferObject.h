@@ -157,18 +157,13 @@ size_t BufferObject<Tgt>::GetSize() const noexcept
 template<class T>
 MapBuffer<T>::MapBuffer(T& buffer, GLenum accessHint) noexcept : mBuffer(buffer)
 {
-	// Increment ref count first
-	int oldCount = mBuffer.mMapRefCount.fetch_add(1, std::memory_order_acquire);
-
-	if (oldCount > 0)
+	// Try to increment ref count from 0 to 1
+	int expected = 0;
+	if (!mBuffer.mMapRefCount.compare_exchange_strong(expected, 1, 
+		std::memory_order_acq_rel, std::memory_order_acquire)) 
 	{
-		// Buffer already mapped - decrement count back
-		mBuffer.mMapRefCount.fetch_sub(1, std::memory_order_release);
 		throw std::runtime_error("Buffer is already mapped");
 	}
-
-	// Memory barrier to ensure all writes are visible
-	std::atomic_thread_fence(std::memory_order_release);
 
 	glBindBuffer(T::TargetValue, mBuffer.m_id);
 	mBufferPtr = glMapBuffer(T::TargetValue, accessHint);
@@ -185,13 +180,9 @@ MapBuffer<T>::~MapBuffer() noexcept
 	if (!mBufferPtr)
 		return;
 
-	// Decrement ref count
-	int newCount = mBuffer.mMapRefCount.fetch_sub(1, std::memory_order_acquire) - 1;
-
-	if (newCount == 0)
+	// Decrement ref count and check if we're the last one
+	if (mBuffer.mMapRefCount.fetch_sub(1, std::memory_order_acq_rel) == 1)
 	{
-		// Last mapping - unmap the buffer
-		std::atomic_thread_fence(std::memory_order_release);
 		glBindBuffer(T::TargetValue, mBuffer.m_id);
 		glUnmapBuffer(T::TargetValue);
 	}
