@@ -89,4 +89,38 @@ BOOST_FIXTURE_TEST_CASE(TestMapBufferMoveSemantics, GLMesaTestFixture)
 	BOOST_TEST(mapBuffer3.RawPointer() == originalPtr);
 }
 
+BOOST_FIXTURE_TEST_CASE(TestMapBufferRAII, GLMesaTestFixture)
+{
+    const std::vector<int> data = {10, 20, 30};
+    ShaderStorageBuffer buffer(data);
+
+    // First mapping scope
+    void* firstPtr = nullptr;
+    {
+        auto map1 = MapBuffer(buffer);
+        firstPtr = map1.RawPointer();
+        BOOST_REQUIRE(firstPtr != nullptr);
+        BOOST_TEST(memcmp(map1.As<int>(), data.data(), buffer.GetSize()) == 0);
+    }
+
+    // Second mapping scope
+    void* secondPtr = nullptr;
+    {
+        auto map2 = MapBuffer(buffer);
+        secondPtr = map2.RawPointer();
+        BOOST_REQUIRE(secondPtr != nullptr);
+        BOOST_TEST(memcmp(map2.As<int>(), data.data(), buffer.GetSize()) == 0);
+    }
+
+    // Verify both mappings worked and pointers were valid
+    BOOST_TEST(firstPtr != secondPtr); // Should get different pointers each time
+    BOOST_REQUIRE(glGetError() == GL_NO_ERROR); // No GL errors after unmapping
+
+    // Verify we can map again after previous mappings were destroyed
+    {
+        auto map3 = MapBuffer(buffer);
+        BOOST_REQUIRE(map3.RawPointer() != nullptr);
+    }
+}
+
 BOOST_AUTO_TEST_SUITE_END()
