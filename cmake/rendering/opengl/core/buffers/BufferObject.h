@@ -57,6 +57,7 @@ public:
 private:
 	friend class MapBuffer<BufferObject<Tgt> >;
 
+	int mMapRefCount{0};
 	GLenum mAccessHint{ GL_STATIC_DRAW };
 };
 
@@ -67,6 +68,8 @@ private:
  *
  * @warning This class is NOT thread-safe. Mapping operations on the same buffer
  *          from different threads will lead to undefined behavior.
+ * @note The buffer can be mapped multiple times in the same scope, but will only
+ *       be actually unmapped when the last MapBuffer goes out of scope.
  *
  * This class provides scoped access to mapped buffer memory:
  * - Automatically maps buffer on construction
@@ -158,18 +161,25 @@ size_t BufferObject<Tgt>::GetSize() const noexcept
 template<class T>
 MapBuffer<T>::MapBuffer(T& buffer, GLenum accessHint) noexcept : mBuffer(buffer)
 {
-	glBindBuffer(T::TargetValue, mBuffer.m_id);
-	mBufferPtr = glMapBuffer(T::TargetValue, accessHint);
+	if (mBuffer.mMapRefCount++ == 0) {
+		glBindBuffer(T::TargetValue, mBuffer.m_id);
+		mBufferPtr = glMapBuffer(T::TargetValue, accessHint);
 
-	if (!mBufferPtr)
-	{
-		throw std::runtime_error("Failed to map buffer");
+		if (!mBufferPtr)
+		{
+			mBuffer.mMapRefCount--;
+			throw std::runtime_error("Failed to map buffer");
+		}
+	} else {
+		// Subsequent mappings get the same pointer
+		glBindBuffer(T::TargetValue, mBuffer.m_id);
+		mBufferPtr = glMapBuffer(T::TargetValue, accessHint);
 	}
 }
 template<class T>
 MapBuffer<T>::~MapBuffer() noexcept
 {
-	if (mBufferPtr)
+	if (mBufferPtr && --mBuffer.mMapRefCount == 0)
 	{
 		glBindBuffer(T::TargetValue, mBuffer.m_id);
 		glUnmapBuffer(T::TargetValue);

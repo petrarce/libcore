@@ -123,6 +123,34 @@ BOOST_FIXTURE_TEST_CASE(TestMapBufferRAII, GLMesaTestFixture)
     }
 }
 
+BOOST_FIXTURE_TEST_CASE(TestMultipleMappings, GLMesaTestFixture)
+{
+    const std::vector<int> data = {1, 2, 3};
+    ShaderStorageBuffer buffer(data);
+
+    // First mapping
+    auto map1 = MapBuffer(buffer);
+    BOOST_REQUIRE(map1.RawPointer() != nullptr);
+
+    // Second mapping while first is still active
+    auto map2 = MapBuffer(buffer);
+    BOOST_REQUIRE(map2.RawPointer() != nullptr);
+    BOOST_TEST(map2.RawPointer() == map1.RawPointer());
+
+    // Third mapping
+    {
+        auto map3 = MapBuffer(buffer);
+        BOOST_REQUIRE(map3.RawPointer() != nullptr);
+        BOOST_TEST(map3.RawPointer() == map1.RawPointer());
+    }
+
+    // First two mappings still valid
+    BOOST_TEST(memcmp(map1.As<int>(), data.data(), buffer.GetSize()) == 0);
+    BOOST_TEST(memcmp(map2.As<int>(), data.data(), buffer.GetSize()) == 0);
+
+    BOOST_REQUIRE(glGetError() == GL_NO_ERROR);
+}
+
 BOOST_FIXTURE_TEST_CASE(TestMapBufferNestedMapping, GLMesaTestFixture)
 {
     const std::vector<int> data = {1, 2, 3};
