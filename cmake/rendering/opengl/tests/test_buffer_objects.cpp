@@ -123,4 +123,26 @@ BOOST_FIXTURE_TEST_CASE(TestMapBufferRAII, GLMesaTestFixture)
     }
 }
 
+BOOST_FIXTURE_TEST_CASE(TestMapBufferNestedMapping, GLMesaTestFixture)
+{
+    const std::vector<int> data = {1, 2, 3};
+    ShaderStorageBuffer buffer(data);
+
+    // First mapping
+    auto outerMap = MapBuffer(buffer);
+    BOOST_REQUIRE(outerMap.RawPointer() != nullptr);
+
+    // Try to map again while first mapping is still active
+    BOOST_CHECK_THROW(
+        [&]() {
+            auto innerMap = MapBuffer(buffer);
+        }(),
+        std::runtime_error
+    );
+
+    // Verify first mapping is still valid
+    BOOST_TEST(memcmp(outerMap.As<int>(), data.data(), buffer.GetSize()) == 0);
+    BOOST_REQUIRE(glGetError() == GL_NO_ERROR);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
