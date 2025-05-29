@@ -3,8 +3,6 @@
 
 #include "BufferObjectBase.h"
 #include <vector>
-#include <atomic>
-#include <thread>
 #include <glad/glad.h>
 
 namespace core_gfx
@@ -59,7 +57,6 @@ public:
 private:
 	friend class MapBuffer<BufferObject<Tgt> >;
 
-	std::atomic<int> mMapRefCount{ 0 };
 	GLenum mAccessHint{ GL_STATIC_DRAW };
 };
 
@@ -68,10 +65,14 @@ private:
  *
  * @tparam T BufferObject type that meets InBufferObject concept requirements
  *
- * This class provides safe, scoped access to mapped buffer memory:
+ * @warning This class is NOT thread-safe. Mapping operations on the same buffer
+ *          from different threads will lead to undefined behavior.
+ *
+ * This class provides scoped access to mapped buffer memory:
  * - Automatically maps buffer on construction
  * - Unmaps buffer on destruction (via RAII)
  * - Supports different access types via template parameter
+ * - Must be used from a single thread per buffer object
  *
  * Usage example:
  * @code
@@ -157,31 +158,18 @@ size_t BufferObject<Tgt>::GetSize() const noexcept
 template<class T>
 MapBuffer<T>::MapBuffer(T& buffer, GLenum accessHint) noexcept : mBuffer(buffer)
 {
-	// Try to increment ref count from 0 to 1
-	int expected = 0;
-	if (!mBuffer.mMapRefCount.compare_exchange_strong(expected, 1, 
-		std::memory_order_acq_rel, std::memory_order_acquire)) 
-	{
-		throw std::runtime_error("Buffer is already mapped");
-	}
-
 	glBindBuffer(T::TargetValue, mBuffer.m_id);
 	mBufferPtr = glMapBuffer(T::TargetValue, accessHint);
 
 	if (!mBufferPtr)
 	{
-		mBuffer.mMapRefCount.fetch_sub(1, std::memory_order_release);
 		throw std::runtime_error("Failed to map buffer");
 	}
 }
 template<class T>
 MapBuffer<T>::~MapBuffer() noexcept
 {
-	if (!mBufferPtr)
-		return;
-
-	// Decrement ref count and check if we're the last one
-	if (mBuffer.mMapRefCount.fetch_sub(1, std::memory_order_acq_rel) == 1)
+	if (mBufferPtr)
 	{
 		glBindBuffer(T::TargetValue, mBuffer.m_id);
 		glUnmapBuffer(T::TargetValue);
