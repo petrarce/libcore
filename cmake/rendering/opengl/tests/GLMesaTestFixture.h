@@ -10,7 +10,9 @@ class GLMesaTestFixture
 public:
 	GLMesaTestFixture()
 	{
-		ctx = OSMesaCreateContextExt(GL_RGBA, 16, 0, 0, NULL);
+		const int attrib[]
+			= { OSMESA_CONTEXT_MAJOR_VERSION, 4, OSMESA_CONTEXT_MINOR_VERSION, 3, 0 };
+		ctx = OSMesaCreateContextAttribs(attrib, nullptr);
 		BOOST_REQUIRE(ctx);
 
 		// Create a buffer for rendering
