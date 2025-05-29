@@ -2,6 +2,8 @@
 #define BUFFER_OBJECT_H
 
 #include "BufferObjectBase.h"
+
+#include <optional>
 #include <vector>
 #include <glad/glad.h>
 
@@ -42,9 +44,9 @@ public:
 	BufferObject(const BufferObject&) = delete;
 	BufferObject& operator=(const BufferObject&) = delete;
 
-	// Allow moving
-	BufferObject(BufferObject&& other) noexcept;
-	BufferObject& operator=(BufferObject&& other) noexcept;
+	// Disallow moving
+	BufferObject(BufferObject&& other) = delete;
+	BufferObject& operator=(BufferObject&& other) = delete;
 
 	template<typename T>
 	explicit BufferObject(const std::vector<T>& data, GLenum accessHint = GL_STATIC_DRAW);
@@ -57,10 +59,10 @@ public:
 private:
 	friend class MapBuffer<BufferObject<Tgt> >;
 
-	int mMapRefCount{0};
+	int mMapRefCount{ 0 };
+	std::optional<void*> mCachedMappedPtr;
 	GLenum mAccessHint{ GL_STATIC_DRAW };
 };
-
 /**
  * @brief RAII wrapper for mapping OpenGL buffer objects
  *
@@ -70,6 +72,7 @@ private:
  *          from different threads will lead to undefined behavior.
  * @note The buffer can be mapped multiple times in the same scope, but will only
  *       be actually unmapped when the last MapBuffer goes out of scope.
+ *       The mapped pointer is cached and reused for subsequent mappings.
  *
  * This class provides scoped access to mapped buffer memory:
  * - Automatically maps buffer on construction
@@ -99,9 +102,9 @@ public:
 	MapBuffer(const MapBuffer&) = delete;
 	MapBuffer& operator=(const MapBuffer&) = delete;
 
-	// Allow moving
-	MapBuffer(MapBuffer&& other) noexcept;
-	MapBuffer& operator=(MapBuffer&& other) noexcept;
+	// Disallow moving
+	MapBuffer(MapBuffer&& other) = delete;
+	MapBuffer& operator=(MapBuffer&& other) = delete;
 
 	[[nodiscard]] void* RawPointer() const noexcept;
 	template<typename U>
@@ -109,26 +112,9 @@ public:
 
 private:
 	T& mBuffer;
-	void* mBufferPtr{ nullptr };
 };
 //================== BufferObject definitions ======================================================
 
-template<GLenum Tgt>
-BufferObject<Tgt>::BufferObject(BufferObject&& other) noexcept
-	: BufferObjectBase(std::move(other))
-	, mAccessHint(other.mAccessHint)
-{
-}
-template<GLenum Tgt>
-BufferObject<Tgt>& BufferObject<Tgt>::operator=(BufferObject&& other) noexcept
-{
-	if (this != &other)
-	{
-		BufferObjectBase::operator=(std::move(other));
-		mAccessHint = other.mAccessHint;
-	}
-	return *this;
-}
 template<GLenum Tgt>
 template<typename T>
 BufferObject<Tgt>::BufferObject(const std::vector<T>& data, GLenum accessHint)
@@ -161,53 +147,42 @@ size_t BufferObject<Tgt>::GetSize() const noexcept
 template<class T>
 MapBuffer<T>::MapBuffer(T& buffer, GLenum accessHint) noexcept : mBuffer(buffer)
 {
-	if (mBuffer.mMapRefCount++ == 0) {
+	assert(mBuffer.mMapRefCount >= 0);
+	assert(mBuffer.mMapRefCount == 0 && mBuffer.);
+	if (mBuffer.mMapRefCount == 0)
+	{
 		glBindBuffer(T::TargetValue, mBuffer.m_id);
-		mBufferPtr = glMapBuffer(T::TargetValue, accessHint);
-	} else {
-		// Subsequent mappings get the same pointer
-		glBindBuffer(T::TargetValue, mBuffer.m_id);
-		mBufferPtr = glMapBuffer(T::TargetValue, accessHint);
+		mBuffer.mCachedMappedPtr = glMapBuffer(T::TargetValue, accessHint);
 	}
+	++mBuffer.mMapRefCount;
 }
 template<class T>
 MapBuffer<T>::~MapBuffer() noexcept
 {
-	if (mBufferPtr && --mBuffer.mMapRefCount == 0)
+	assert(mBuffer.mMapRefCount > 0);
+	assert(!mBuffer.mCachedMappedPtr.has_value());
+	--mBuffer.mMapRefCount;
+	if (mBuffer.mMapRefCount == 0)
 	{
-		glBindBuffer(T::TargetValue, mBuffer.m_id);
-		glUnmapBuffer(T::TargetValue);
+		if (mBuffer.mCachedMappedPtr.value() != nullptr)
+		{
+			glBindBuffer(T::TargetValue, mBuffer.m_id);
+			glUnmapBuffer(T::TargetValue);
+		}
+		mBuffer.mCachedMappedPtr.reset();
 	}
 }
-template<class T>
-MapBuffer<T>::MapBuffer(MapBuffer&& other) noexcept
-	: mBuffer(other.mBuffer)
-	, mBufferPtr(other.mBufferPtr)
-{
-	other.mBufferPtr = nullptr;
-}
-template<class T>
-MapBuffer<T>& MapBuffer<T>::operator=(MapBuffer&& other) noexcept
-{
-	if (this == &other)
-		return *this;
 
-	mBuffer = other.mBuffer;
-	mBufferPtr = other.mBufferPtr;
-	other.mBufferPtr = nullptr;
-
-	return *this;
-}
 template<class T>
 void* MapBuffer<T>::RawPointer() const noexcept
 {
-	return mBufferPtr;
+	return mBuffer.mCachedMappedPtr.value();
 }
 template<class T>
 template<typename U>
 U* MapBuffer<T>::As() const noexcept
 {
-	return static_cast<U*>(mBufferPtr);
+	return static_cast<U*>(RawPointer());
 }
 
 // =====================================Convenience aliases definitions ============================
