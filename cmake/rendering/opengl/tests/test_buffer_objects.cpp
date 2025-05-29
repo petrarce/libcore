@@ -9,6 +9,8 @@
 
 #include <boost/test/unit_test.hpp>
 #include <glad/glad.h>
+#include <thread>
+#include <chrono>
 #include <buffers/BufferObject.h>
 
 using namespace core_gfx::open_gl;
@@ -140,6 +142,38 @@ BOOST_FIXTURE_TEST_CASE(TestMapBufferNestedMapping, GLMesaTestFixture)
 
     // Verify first mapping is still valid
     BOOST_TEST(memcmp(outerMap.As<int>(), data.data(), buffer.GetSize()) == 0);
+    BOOST_REQUIRE(glGetError() == GL_NO_ERROR);
+}
+
+BOOST_FIXTURE_TEST_CASE(TestMapBufferThreadSafety, GLMesaTestFixture)
+{
+    const std::vector<int> data = {1, 2, 3};
+    ShaderStorageBuffer buffer(data);
+
+    // Test that multiple threads can't map the same buffer
+    std::vector<std::thread> threads;
+    std::atomic<int> successCount{0};
+    std::atomic<int> failCount{0};
+
+    for (int i = 0; i < 10; ++i) {
+        threads.emplace_back([&]() {
+            try {
+                MapBuffer<ShaderStorageBuffer> map(buffer);
+                ++successCount;
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            } catch (const std::runtime_error&) {
+                ++failCount;
+            }
+        });
+    }
+
+    for (auto& t : threads) {
+        t.join();
+    }
+
+    // Only one thread should succeed in mapping
+    BOOST_TEST(successCount == 1);
+    BOOST_TEST(failCount == 9);
     BOOST_REQUIRE(glGetError() == GL_NO_ERROR);
 }
 

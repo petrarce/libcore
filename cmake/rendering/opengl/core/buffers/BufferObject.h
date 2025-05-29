@@ -3,6 +3,8 @@
 
 #include "BufferObjectBase.h"
 #include <vector>
+#include <atomic>
+#include <thread>
 #include <glad/glad.h>
 
 namespace core_gfx
@@ -35,8 +37,6 @@ class BufferObject;
 template<GLenum Tgt>
 class BufferObject : public BufferObjectBase
 {
-	friend class MapBuffer<BufferObject<Tgt> >;
-
 public:
 	static constexpr GLenum TargetValue = Tgt;
 
@@ -57,6 +57,9 @@ public:
 	size_t GetSize() const noexcept;
 
 private:
+	friend class MapBuffer<BufferObject<Tgt> >;
+
+	std::atomic<int> mMapRefCount{ 0 };
 	GLenum mAccessHint{ GL_STATIC_DRAW };
 };
 
@@ -154,16 +157,44 @@ size_t BufferObject<Tgt>::GetSize() const noexcept
 template<class T>
 MapBuffer<T>::MapBuffer(T& buffer, GLenum accessHint) noexcept : mBuffer(buffer)
 {
+	// Increment ref count first
+	int oldCount = mBuffer.mMapRefCount.fetch_add(1, std::memory_order_acquire);
+
+	if (oldCount > 0)
+	{
+		// Buffer already mapped - decrement count back
+		mBuffer.mMapRefCount.fetch_sub(1, std::memory_order_release);
+		throw std::runtime_error("Buffer is already mapped");
+	}
+
+	// Memory barrier to ensure all writes are visible
+	std::atomic_thread_fence(std::memory_order_release);
+
 	glBindBuffer(T::TargetValue, mBuffer.m_id);
 	mBufferPtr = glMapBuffer(T::TargetValue, accessHint);
+
+	if (!mBufferPtr)
+	{
+		mBuffer.mMapRefCount.fetch_sub(1, std::memory_order_release);
+		throw std::runtime_error("Failed to map buffer");
+	}
 }
 template<class T>
 MapBuffer<T>::~MapBuffer() noexcept
 {
 	if (!mBufferPtr)
 		return;
-	glBindBuffer(T::TargetValue, mBuffer.m_id);
-	glUnmapBuffer(T::TargetValue);
+
+	// Decrement ref count
+	int newCount = mBuffer.mMapRefCount.fetch_sub(1, std::memory_order_acquire) - 1;
+
+	if (newCount == 0)
+	{
+		// Last mapping - unmap the buffer
+		std::atomic_thread_fence(std::memory_order_release);
+		glBindBuffer(T::TargetValue, mBuffer.m_id);
+		glUnmapBuffer(T::TargetValue);
+	}
 }
 template<class T>
 MapBuffer<T>::MapBuffer(MapBuffer&& other) noexcept
