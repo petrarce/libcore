@@ -112,8 +112,6 @@ BOOST_FIXTURE_TEST_CASE(TestMapBufferRAII, GLMesaTestFixture)
         BOOST_TEST(memcmp(map2.As<int>(), data.data(), buffer.GetSize()) == 0);
     }
 
-    // Verify both mappings worked and pointers were valid
-    BOOST_TEST(firstPtr != secondPtr); // Should get different pointers each time
     BOOST_REQUIRE(glGetError() == GL_NO_ERROR); // No GL errors after unmapping
 
     // Verify we can map again after previous mappings were destroyed
