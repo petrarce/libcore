@@ -40,14 +40,6 @@ class BufferObject : public BufferObjectBase
 public:
 	static constexpr GLenum TargetValue = Tgt;
 
-	// Disallow copying
-	BufferObject(const BufferObject&) = delete;
-	BufferObject& operator=(const BufferObject&) = delete;
-
-	// Disallow moving
-	BufferObject(BufferObject&& other) = delete;
-	BufferObject& operator=(BufferObject&& other) = delete;
-
 	template<typename T>
 	explicit BufferObject(const std::vector<T>& data, GLenum accessHint = GL_STATIC_DRAW);
 

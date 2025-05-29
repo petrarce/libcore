@@ -18,9 +18,9 @@ public:
 	BufferObjectBase(const BufferObjectBase&) = delete;
 	BufferObjectBase& operator=(const BufferObjectBase&) = delete;
 
-	// Allow moving
-	BufferObjectBase(BufferObjectBase&&) = default;
-	BufferObjectBase& operator=(BufferObjectBase&&) = default;
+	// Disallow moving
+	BufferObjectBase(BufferObjectBase&&) = delete;
+	BufferObjectBase& operator=(BufferObjectBase&&) = delete;
 
 protected:
 	GLuint m_id;
