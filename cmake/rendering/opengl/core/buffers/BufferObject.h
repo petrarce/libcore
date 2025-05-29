@@ -164,12 +164,6 @@ MapBuffer<T>::MapBuffer(T& buffer, GLenum accessHint) noexcept : mBuffer(buffer)
 	if (mBuffer.mMapRefCount++ == 0) {
 		glBindBuffer(T::TargetValue, mBuffer.m_id);
 		mBufferPtr = glMapBuffer(T::TargetValue, accessHint);
-
-		if (!mBufferPtr)
-		{
-			mBuffer.mMapRefCount--;
-			throw std::runtime_error("Failed to map buffer");
-		}
 	} else {
 		// Subsequent mappings get the same pointer
 		glBindBuffer(T::TargetValue, mBuffer.m_id);
