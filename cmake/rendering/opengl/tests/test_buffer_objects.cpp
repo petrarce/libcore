@@ -120,4 +120,23 @@ BOOST_FIXTURE_TEST_CASE(TestMultipleMappings, GLMesaTestFixture)
 	BOOST_REQUIRE(glGetError() == GL_NO_ERROR);
 }
 
+BOOST_FIXTURE_TEST_CASE(TestLoadData, GLMesaTestFixture)
+{
+    // Initialize test data
+    const std::vector<float> originalData = {1.1f, 2.2f, 3.3f, 4.4f, 5.5f};
+    ShaderStorageBuffer buffer(originalData);
+
+    // Create destination vector with correct size
+    std::vector<float> loadedData(originalData.size());
+    
+    // Load data from GPU buffer
+    buffer.LoadData(loadedData);
+
+    // Verify loaded data matches original
+    BOOST_TEST(loadedData == originalData, boost::test_tools::per_element());
+    
+    // Verify no OpenGL errors occurred
+    BOOST_REQUIRE(glGetError() == GL_NO_ERROR);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
