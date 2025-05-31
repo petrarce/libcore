@@ -63,7 +63,7 @@ class ComputeEvaluator
 	}
 
 private:
-	template<template<class> typename Constraint, template<class...> class Tuple, class... Args>
+	template<typename Constraint, template<class...> class Tuple, class... Args>
 	auto filterBuffer(Tuple<Args...>&& tpl)
 	{
 		return [&]<size_t... I>(std::index_sequence<I...>)
@@ -73,7 +73,7 @@ private:
 				{
 					using ElemT = std::remove_cvref_t<
 						std::tuple_element_t<Index, std::remove_cvref_t<Tuple<Args...> > > >;
-					if constexpr (Constraint<ElemT>())
+					if constexpr (Constraint.template operator()<ElemT>())
 						return std::forward_as_tuple(std::get<Index>(tpl));
 					return std::tuple<>();
 				}.template operator()<I>()...);
