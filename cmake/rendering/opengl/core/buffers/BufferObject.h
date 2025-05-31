@@ -45,6 +45,8 @@ public:
 
 	template<typename T>
 	void UpdateData(const std::vector<T>& data, GLintptr offset = 0);
+	template<class T>
+	void LoadData(std::vector<T>& output);
 
 	size_t GetSize() const noexcept;
 
@@ -125,6 +127,15 @@ void BufferObject<Tgt>::UpdateData(const std::vector<T>& data, GLintptr offset)
 		return;
 	glBindBuffer(Tgt, m_id);
 	glBufferSubData(Tgt, offset, data.size() * sizeof(T), data.data());
+}
+
+template<GLenum Tgt>
+template<typename T>
+void BufferObject<Tgt>::LoadData(std::vector<T>& output)
+{
+	assert(output.size() * sizeof(T) == GetSize());
+	auto map = MabBuffer(*this);
+	memcpy(map.template As<T>(), output.data(), output.size());
 }
 template<GLenum Tgt>
 size_t BufferObject<Tgt>::GetSize() const noexcept
