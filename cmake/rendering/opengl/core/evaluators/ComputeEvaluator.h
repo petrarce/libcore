@@ -25,27 +25,34 @@ template<class T>
 using OutputBuffer = StrongTypedef<detail::OutputBufferTag, std::vector<T> >;
 
 template<class T>
-struct IsInputBuffer {
-	static constexpr bool value = std::is_same_v<typename T::TypeTag, detail::InputBufferTag>;
-};
-
+concept IsInputBuffer = std::is_same_v<typename T::TypeTag, detail::OutputBufferTag>;
 template<class T>
-struct IsOutputBuffer {
-	static constexpr bool value = std::is_same_v<typename T::TypeTag, detail::OutputBufferTag>;
-};
+concept IsOutputBuffer = std::is_same_v<typename T::TypeTag, detail::InputBufferTag>;
 
 class ComputeEvaluator
 {
 
 	explicit ComputeEvaluator(ComputeShader&& computeShader);
 
+	template<class T>
+	struct IsInputBufferTrait
+	{
+		static constexpr bool value = IsInputBuffer<T>;
+	};
+
+	template<class T>
+	struct IsOutputBufferTrait
+	{
+		static constexpr bool value = IsOutputBuffer<T>;
+	};
+
 	template<class... InputsOutputs>
 	void Evaluate(InputsOutputs&&... buffers, const std::array<int, 3> dispatchConfig)
 	{
 		auto _tie = std::tie(buffers...);
 
-		auto inputs = filterBuffer<IsInputBuffer>(_tie);
-		auto outputs = filterBuffer<IsOutputBuffer>(_tie);
+		auto inputs = filterBuffer < IsInputBufferTrait >> (_tie);
+		auto outputs = filterBuffer < IsOutputBufferTrait >> (_tie);
 
 		auto inputBuffers = SetupInputBuffers(inputs);
 		auto outputBuffers = SetupOutputBuffers(outputs);
@@ -85,6 +92,7 @@ private:
 		}
 		(std::index_sequence_for<Args...>{});
 	}
+
 	template<IsInputBuffer... Inputs>
 	auto SetupInputBuffers(const Inputs&... inputs)
 	{
