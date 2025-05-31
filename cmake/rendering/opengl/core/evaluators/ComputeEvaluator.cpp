@@ -6,4 +6,8 @@
 namespace core_gfx::open_gl
 {
 
+ComputeEvaluator::ComputeEvaluator(ComputeShader&& computeShader)
+	: mCs(std::move(computeShader))
+{
 }
+} // namespace core_gfx::open_gl

@@ -32,22 +32,34 @@ concept IsOutputBuffer = std::is_same_v<T::TypeTag, detail::OutputBufferTag>;
 class ComputeEvaluator
 {
 
-	explicit ComputeEvaluator(ComputeShader computeShader);
+	explicit ComputeEvaluator(ComputeShader&& computeShader);
 
 	template<class... InputsOutputs>
 	void Evaluate(InputsOutputs&&... buffers, const std::array<int, 3> dispatchConfig)
 	{
 		auto _tie = std::tie(buffers...);
-		auto inputs = filterBuffer(buffers...);
-		auto outputs = filterBuffer(buffers...);
+
+		auto inputs = filterBuffer<IsInputBuffer>(_tie);
+		auto outputs = filterBuffer<IsOutputBuffer>(_tie);
 
 		auto inputBuffers = SetupInputBuffers(inputs);
 		auto outputBuffers = SetupOutputBuffers(outputs);
 
+		// bind locations for the input and ouput buffers
+		for (int i = 0; i < inputBuffers.size(); ++i)
+			inputBuffers[i].BindLocationIndexBase(i);
+		for (int i = 0; i < outputBuffers.size(); ++i)
+			outputBuffers[i].BindLocationIndexBase(i + inputBuffers.size());
+
 		glDispatchCompute(dispatchConfig[0], dispatchConfig[1], dispatchConfig[2]);
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-		LoadDataFromOutputBuffers();
+		// Load all opengl buffers back to the supplied output buffers
+		[&]<size_t... I>(std::index_sequence<I...>)
+		{
+			((outputBuffers[I].LoadData(std::get<I>(outputs))), ...);
+		}
+		(std::make_index_sequence<std::tuple_size(outputs)>{});
 	}
 
 private:
@@ -78,14 +90,6 @@ private:
 	auto SetupOutputBuffers(const Outputs&... outputs)
 	{
 		return std::vector<ShaderStorageBuffer>({ ShaderStorageBuffer(outputs)... });
-	}
-
-	template<IsOutputBuffer... Outputs>
-	void LoadData(std::vector<ShaderStorageBuffer> outputBuffers, Outputs&... outputs)
-	{
-		assert(outputBuffers.size() == std::sizeof...(outputs));
-		auto _load = []<IsOutputBuffer Output>(ShaderStorageBuffer& buffer, Output& output)
-		{ using ItemType = std::remove_cvref_t<decltype(output[0])>; };
 	}
 
 	ComputeShader mCs;

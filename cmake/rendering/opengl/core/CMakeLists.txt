@@ -14,8 +14,8 @@ add_library(core-gfx SHARED
     buffers/BufferObjectBase.cpp
     buffers/BufferObjectBase.h
     buffers/BufferObject.h
-        evaluators/ComputeEvaluator.cpp
-        evaluators/ComputeEvaluator.h
+    evaluators/ComputeEvaluator.cpp
+    evaluators/ComputeEvaluator.h
 )
 
 target_link_libraries(core-gfx
