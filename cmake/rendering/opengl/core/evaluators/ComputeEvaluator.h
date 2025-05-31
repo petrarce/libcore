@@ -25,9 +25,14 @@ template<class T>
 using OutputBuffer = StrongTypedef<detail::OutputBufferTag, std::vector<T> >;
 
 template<class T>
-concept IsInputBuffer = std::is_same_v<T::TypeTag, detail::InputBufferTag>;
+struct IsInputBuffer {
+	static constexpr bool value = std::is_same_v<typename T::TypeTag, detail::InputBufferTag>;
+};
+
 template<class T>
-concept IsOutputBuffer = std::is_same_v<T::TypeTag, detail::OutputBufferTag>;
+struct IsOutputBuffer {
+	static constexpr bool value = std::is_same_v<typename T::TypeTag, detail::OutputBufferTag>;
+};
 
 class ComputeEvaluator
 {
@@ -63,7 +68,7 @@ class ComputeEvaluator
 	}
 
 private:
-	template<typename Constraint, template<class...> class Tuple, class... Args>
+	template<template<class> class Constraint, template<class...> class Tuple, class... Args>
 	auto filterBuffer(Tuple<Args...>&& tpl)
 	{
 		return [&]<size_t... I>(std::index_sequence<I...>)
@@ -73,7 +78,7 @@ private:
 				{
 					using ElemT = std::remove_cvref_t<
 						std::tuple_element_t<Index, std::remove_cvref_t<Tuple<Args...> > > >;
-					if constexpr (Constraint.template operator()<ElemT>())
+					if constexpr (Constraint<ElemT>::value)
 						return std::forward_as_tuple(std::get<Index>(tpl));
 					return std::tuple<>();
 				}.template operator()<I>()...);
