@@ -20,7 +20,7 @@ public:
 			cursorMoveCallback
 		= [](const glm::ivec2&, const glm::ivec2&) {},
 		std::function<void(double, double)> scrollCallback = [](double, double) {});
-	virtual ~Glfw();
+	~Glfw() override;
 	void Run(std::function<bool()>&& functor) final;
 	void Resize(int width, int height);
 	void CursorMove(int x, int y);

@@ -20,12 +20,18 @@ add_executable_test(NAME simple-uniform-test
     LINK
         gfx::ui
         core::gfx
-        rendering-utils
+        rendering::utils
     RESOURCES
         simple_uniform_test/vert.glsl
         simple_uniform_test/frag.glsl
         simple_uniform_test/frag_diff.glsl
         simple_uniform_test/vert_diff.glsl
         simple_uniform_test/bricks.jpg
+
+)
+
+add_executable_test(NAME game-of-life
+    SOURCE game_of_life.cpp
+    LINK core::gfx
 
 )
