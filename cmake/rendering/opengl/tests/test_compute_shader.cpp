@@ -5,6 +5,7 @@
 
 #include <boost/test/unit_test.hpp>
 #include <programs/Shader.h>
+#include <rendering/opengl/core/evaluators/ComputeEvaluator.h>
 #include <glad/glad.h>
 
 #include "programs/Program.h"
