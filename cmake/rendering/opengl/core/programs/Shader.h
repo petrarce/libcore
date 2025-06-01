@@ -20,9 +20,9 @@ public:
 	ShaderBase() = default;
 	~ShaderBase();
 	void Compile();
-	GLint Id() const;
+	[[nodiscard]] GLint Id() const;
 
-	std::string GetInfoLog()
+	[[nodiscard]] std::string GetInfoLog() const
 	{
 		GLint logsize;
 		glGetShaderiv(mShaderId, GL_INFO_LOG_LENGTH, &logsize);
@@ -49,6 +49,7 @@ public:
 	}
 
 	explicit Shader(const std::filesystem::path& shaderPath)
+		: ShaderBase()
 	{
 		std::ifstream file(shaderPath);
 		std::string shader;
