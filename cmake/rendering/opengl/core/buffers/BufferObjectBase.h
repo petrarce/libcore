@@ -14,6 +14,14 @@ public:
 	BufferObjectBase();
 	virtual ~BufferObjectBase();
 
+	// Delete copy semantics
+	BufferObjectBase(const BufferObjectBase&) = delete;
+	BufferObjectBase& operator=(const BufferObjectBase&) = delete;
+
+	// Implement move semantics
+	BufferObjectBase(BufferObjectBase&& other) noexcept;
+	BufferObjectBase& operator=(BufferObjectBase&& other) noexcept;
+
 protected:
 	GLuint m_id{ 0 };
 };
