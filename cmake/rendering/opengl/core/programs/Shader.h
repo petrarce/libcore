@@ -18,11 +18,30 @@ class ShaderBase
 {
 public:
 	ShaderBase() = default;
-	~ShaderBase();
+	virtual ~ShaderBase();
+	
+	ShaderBase(const ShaderBase&) = delete;
+	ShaderBase& operator=(const ShaderBase&) = delete;
+	
+	ShaderBase(ShaderBase&& other) noexcept 
+		: mShaderId(other.mShaderId) 
+	{
+		other.mShaderId = 0;
+	}
+	
+	ShaderBase& operator=(ShaderBase&& other) noexcept 
+	{
+		if (this != &other) {
+			glDeleteShader(mShaderId);
+			mShaderId = other.mShaderId;
+			other.mShaderId = 0;
+		}
+		return *this;
+	}
 	void Compile();
-	GLint Id() const;
+	[[nodiscard]] GLint Id() const;
 
-	std::string GetInfoLog()
+	[[nodiscard]] std::string GetInfoLog() const
 	{
 		GLint logsize;
 		glGetShaderiv(mShaderId, GL_INFO_LOG_LENGTH, &logsize);
@@ -41,6 +60,9 @@ class Shader : public detail::ShaderBase
 {
 public:
 	Shader() = delete;
+	
+	Shader(Shader&&) = default;
+	Shader& operator=(Shader&&) = default;
 
 	explicit Shader(const ::std::string& shader)
 		: ShaderBase()
@@ -49,6 +71,7 @@ public:
 	}
 
 	explicit Shader(const std::filesystem::path& shaderPath)
+		: ShaderBase()
 	{
 		std::ifstream file(shaderPath);
 		std::string shader;
