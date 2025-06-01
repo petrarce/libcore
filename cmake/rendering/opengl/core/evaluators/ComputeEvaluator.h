@@ -106,7 +106,8 @@ private:
 		return [&]<size_t... I>(std::index_sequence<I...>)
 		{
 			std::vector<ShaderStorageBuffer> buffers;
-			(buffers.emplace_back(*std::get<I>(inputs)), ...);
+			buffers.reserve(sizeof...(I));
+			(buffers.emplace_back(ShaderStorageBuffer(*std::get<I>(inputs))), ...);
 			return buffers;
 		}
 		(std::index_sequence_for<Inputs...>{});
@@ -118,7 +119,8 @@ private:
 		return [&]<size_t... I>(std::index_sequence<I...>)
 		{
 			std::vector<ShaderStorageBuffer> buffers;
-			(buffers.emplace_back(*std::get<I>(outputs)), ...);
+			buffers.reserve(sizeof...(I));
+			(buffers.emplace_back(ShaderStorageBuffer(*std::get<I>(outputs))), ...);
 			return buffers;
 		}
 		(std::index_sequence_for<Outputs...>{});
