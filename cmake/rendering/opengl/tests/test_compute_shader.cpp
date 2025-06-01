@@ -112,9 +112,11 @@ BOOST_FIXTURE_TEST_CASE(TestComputeEvaluatorSumBuffers, GLMesaTestFixture)
 		"void main() {"
 		"   r[gl_GlobalInvocationID.x] = v1[gl_GlobalInvocationID.x] + v2[gl_GlobalInvocationID.x];"
 		"}\n"));
-
+	Program prog;
+	prog.Setup(computeShader);
+	prog.Use();
 	// Create evaluator and run computation
-	ComputeEvaluator evaluator(std::move(computeShader));
+	ComputeEvaluator evaluator;
 	evaluator.Evaluate(std::array{ static_cast<int>(in1->size()), 1, 1 }, in1, in2, out);
 	BOOST_REQUIRE(glGetError() == GL_NO_ERROR);
 	// Verify results

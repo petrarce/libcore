@@ -147,7 +147,7 @@ void BufferObject<Tgt>::LoadData(std::vector<T>& output)
 	assert(output.size() * sizeof(T) == GetSize());
 	glBindBuffer(Tgt, m_id);
 	glGetBufferSubData(Tgt, 0, output.size() * sizeof(T), output.data());
-	assert(glErrorCheck() == GL_NO_ERROR);
+	assert(glGetError() == GL_NO_ERROR);
 }
 template<GLenum Tgt>
 BufferObject<Tgt>::BufferObject(BufferObject&& other) noexcept
@@ -190,7 +190,7 @@ template<class T>
 MapBuffer<T>::MapBuffer(T& buffer, GLenum accessHint) noexcept : mBuffer(buffer)
 {
 	assert(mBuffer.mMapRefCount >= 0);
-	assert(mBuffer.mMapRefCount == 0 && mBuffer.);
+	assert(mBuffer.mMapRefCount == 0 || mBuffer.mCachedMappedPtr.has_value());
 	if (mBuffer.mMapRefCount == 0)
 	{
 		glBindBuffer(T::TargetValue, mBuffer.m_id);
@@ -202,7 +202,7 @@ template<class T>
 MapBuffer<T>::~MapBuffer() noexcept
 {
 	assert(mBuffer.mMapRefCount > 0);
-	assert(!mBuffer.mCachedMappedPtr.has_value());
+	assert(mBuffer.mCachedMappedPtr.has_value());
 	--mBuffer.mMapRefCount;
 	if (mBuffer.mMapRefCount == 0)
 	{

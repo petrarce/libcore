@@ -38,7 +38,7 @@ static_assert(!IsInputBuffer<float>);
 class ComputeEvaluator
 {
 public:
-	explicit ComputeEvaluator(ComputeShader&& computeShader);
+	explicit ComputeEvaluator();
 
 	template<class T>
 	struct IsInputBufferTrait
@@ -72,7 +72,7 @@ public:
 		glDispatchCompute(dispatchConfig[0], dispatchConfig[1], dispatchConfig[2]);
 		assert(glGetError() == GL_NO_ERROR);
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-		assert(glError == GL_NO_ERROR);
+		assert(glGetError() == GL_NO_ERROR);
 
 		// Load all opengl buffers back to the supplied output buffers
 		[&]<size_t... I>(std::index_sequence<I...>)
@@ -109,7 +109,7 @@ private:
 		{
 			std::vector<ShaderStorageBuffer> buffers;
 			buffers.reserve(sizeof...(I));
-			(buffers.push_back(ShaderStorageBuffer(*std::get<I>(inputs))), ...);
+			(buffers.emplace_back(std::move(ShaderStorageBuffer(*std::get<I>(inputs)))), ...);
 			return buffers;
 		}
 		(std::index_sequence_for<Inputs...>{});
@@ -122,13 +122,11 @@ private:
 		{
 			std::vector<ShaderStorageBuffer> buffers;
 			buffers.reserve(sizeof...(I));
-			(buffers.push_back(ShaderStorageBuffer(*std::get<I>(outputs))), ...);
+			(buffers.emplace_back(std::move(ShaderStorageBuffer(*std::get<I>(outputs)))), ...);
 			return buffers;
 		}
 		(std::index_sequence_for<Outputs...>{});
 	}
-
-	ComputeShader mCs;
 };
 } // namespace core_gfx::open_gl
 #endif // COMPUTEEVALUATOR_H
