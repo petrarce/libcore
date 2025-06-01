@@ -25,13 +25,19 @@ template<class T>
 using OutputBuffer = StrongTypedef<detail::OutputBufferTag, std::vector<T> >;
 
 template<class T>
-concept IsInputBuffer = std::is_same_v<typename T::TypeTag, detail::OutputBufferTag>;
+concept IsInputBuffer
+	= std::is_same_v<typename std::remove_cvref_t<T>::TypeTag, detail::InputBufferTag>;
 template<class T>
-concept IsOutputBuffer = std::is_same_v<typename T::TypeTag, detail::InputBufferTag>;
+concept IsOutputBuffer
+	= std::is_same_v<typename std::remove_cvref_t<T>::TypeTag, detail::OutputBufferTag>;
+
+static_assert(IsInputBuffer<InputBuffer<int> >);
+static_assert(IsOutputBuffer<OutputBuffer<int> >);
+static_assert(!IsInputBuffer<float>);
 
 class ComputeEvaluator
 {
-
+public:
 	explicit ComputeEvaluator(ComputeShader&& computeShader);
 
 	template<class T>
@@ -47,12 +53,12 @@ class ComputeEvaluator
 	};
 
 	template<class... InputsOutputs>
-	void Evaluate(InputsOutputs&&... buffers, const std::array<int, 3> dispatchConfig)
+	void Evaluate(const std::array<int, 3>& dispatchConfig, InputsOutputs&&... buffers)
 	{
 		auto _tie = std::tie(buffers...);
 
-		auto inputs = filterBuffer < IsInputBufferTrait >> (_tie);
-		auto outputs = filterBuffer < IsOutputBufferTrait >> (_tie);
+		auto inputs = filterBuffer<IsInputBufferTrait>(_tie);
+		auto outputs = filterBuffer<IsOutputBufferTrait>(_tie);
 
 		auto inputBuffers = SetupInputBuffers(inputs);
 		auto outputBuffers = SetupOutputBuffers(outputs);
@@ -71,12 +77,12 @@ class ComputeEvaluator
 		{
 			((outputBuffers[I].LoadData(std::get<I>(outputs))), ...);
 		}
-		(std::make_index_sequence<std::tuple_size(outputs)>{});
+		(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<decltype(outputs)> > >{});
 	}
 
 private:
 	template<template<class> class Constraint, template<class...> class Tuple, class... Args>
-	auto filterBuffer(Tuple<Args...>&& tpl)
+	auto filterBuffer(Tuple<Args...>& tpl)
 	{
 		return [&]<size_t... I>(std::index_sequence<I...>)
 		{
@@ -87,22 +93,33 @@ private:
 						std::tuple_element_t<Index, std::remove_cvref_t<Tuple<Args...> > > >;
 					if constexpr (Constraint<ElemT>::value)
 						return std::forward_as_tuple(std::get<Index>(tpl));
-					return std::tuple<>();
+					else
+						return std::tuple<>();
 				}.template operator()<I>()...);
 		}
 		(std::index_sequence_for<Args...>{});
 	}
 
-	template<IsInputBuffer... Inputs>
-	auto SetupInputBuffers(const Inputs&... inputs)
+	template<template<class...> class Tuple, IsInputBuffer... Inputs>
+	auto SetupInputBuffers(Tuple<Inputs...>& inputs)
 	{
-		return std::vector<ShaderStorageBuffer>({ ShaderStorageBuffer(inputs)... });
+		return [&]<size_t... I>(std::index_sequence<I...>)
+		{
+			return std::vector<ShaderStorageBuffer>(
+				{ ShaderStorageBuffer(std::get<I>(inputs))... });
+		}
+		(std::index_sequence_for<Inputs...>{});
 	}
 
-	template<IsOutputBuffer... Outputs>
-	auto SetupOutputBuffers(const Outputs&... outputs)
+	template<template<class...> class Tuple, IsOutputBuffer... Outputs>
+	auto SetupOutputBuffers(Tuple<Outputs...>& outputs)
 	{
-		return std::vector<ShaderStorageBuffer>({ ShaderStorageBuffer(outputs)... });
+		return [&]<size_t... I>(std::index_sequence<I...>)
+		{
+			return std::vector<ShaderStorageBuffer>(
+				{ ShaderStorageBuffer(std::get<I>(outputs))... });
+		}
+		(std::index_sequence_for<Outputs...>{});
 	}
 
 	ComputeShader mCs;

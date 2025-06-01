@@ -96,30 +96,29 @@ BOOST_FIXTURE_TEST_CASE(TryComputeShaderSumBuffers, GLMesaTestFixture)
 
 BOOST_FIXTURE_TEST_CASE(TestComputeEvaluatorSumBuffers, GLMesaTestFixture)
 {
-    // Create input and output buffers using StrongTypedef wrappers
-    InputBuffer<int> in1 = std::vector<int>{1, 2, 3, 4, 5};
-    InputBuffer<int> in2 = std::vector<int>{5, 4, 3, 2, 1};
-    OutputBuffer<int> out = std::vector<int>{0, 0, 0, 0, 0};
-    std::vector<int> expected = {6, 6, 6, 6, 6};
+	// Create input and output buffers using StrongTypedef wrappers
+	InputBuffer<int> in1(std::vector<int>{ 1, 2, 3, 4, 5 });
+	InputBuffer<int> in2(std::vector<int>{ 5, 4, 3, 2, 1 });
+	OutputBuffer<int> out(std::vector<int>{ 0, 0, 0, 0, 0 });
+	std::vector<int> expected = { 6, 6, 6, 6, 6 };
 
-    // Create compute shader that sums two buffers
-    ComputeShader computeShader(std::string(
-        "#version 430 core\n"
-        "layout(local_size_x = 1) in;"
-        "layout(binding = 0) buffer in1 { int v1[]; };"
-        "layout(binding = 1) buffer in2 { int v2[]; };"
-        "layout(binding = 2) buffer rbuf { int r[]; };"
-        "void main() {"
-        "   r[gl_GlobalInvocationID.x] = v1[gl_GlobalInvocationID.x] + v2[gl_GlobalInvocationID.x];"
-        "}\n"
-    ));
+	// Create compute shader that sums two buffers
+	ComputeShader computeShader(std::string(
+		"#version 430 core\n"
+		"layout(local_size_x = 1) in;"
+		"layout(binding = 0) buffer in1 { int v1[]; };"
+		"layout(binding = 1) buffer in2 { int v2[]; };"
+		"layout(binding = 2) buffer rbuf { int r[]; };"
+		"void main() {"
+		"   r[gl_GlobalInvocationID.x] = v1[gl_GlobalInvocationID.x] + v2[gl_GlobalInvocationID.x];"
+		"}\n"));
 
-    // Create evaluator and run computation
-    ComputeEvaluator evaluator(std::move(computeShader));
-    evaluator.Evaluate(in1, in2, out, {static_cast<int>(in1->size()), 1, 1});
+	// Create evaluator and run computation
+	ComputeEvaluator evaluator(std::move(computeShader));
+	evaluator.Evaluate(std::array{ static_cast<int>(in1.size()), 1, 1 }, in1, in2, out);
 
-    // Verify results
-    BOOST_TEST(*out == expected, boost::test_tools::per_element());
+	// Verify results
+	BOOST_TEST(*out == expected, boost::test_tools::per_element());
 }
 
 BOOST_AUTO_TEST_SUITE_END()
