@@ -75,7 +75,7 @@ public:
 		// Load all opengl buffers back to the supplied output buffers
 		[&]<size_t... I>(std::index_sequence<I...>)
 		{
-			((outputBuffers[I].LoadData(std::get<I>(outputs))), ...);
+			((outputBuffers[I].LoadData(*std::get<I>(outputs))), ...);
 		}
 		(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<decltype(outputs)> > >{});
 	}
@@ -105,8 +105,9 @@ private:
 	{
 		return [&]<size_t... I>(std::index_sequence<I...>)
 		{
-			return std::vector<ShaderStorageBuffer>(
-				{ ShaderStorageBuffer(std::get<I>(inputs))... });
+			std::vector<ShaderStorageBuffer> buffers;
+			(buffers.emplace_back(*std::get<I>(inputs)), ...);
+			return buffers;
 		}
 		(std::index_sequence_for<Inputs...>{});
 	}
@@ -116,8 +117,9 @@ private:
 	{
 		return [&]<size_t... I>(std::index_sequence<I...>)
 		{
-			return std::vector<ShaderStorageBuffer>(
-				{ ShaderStorageBuffer(std::get<I>(outputs))... });
+			std::vector<ShaderStorageBuffer> buffers;
+			(buffers.emplace_back(*std::get<I>(outputs)), ...);
+			return buffers;
 		}
 		(std::index_sequence_for<Outputs...>{});
 	}
