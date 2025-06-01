@@ -21,7 +21,12 @@ const std::string& ShaderName(GLint shader)
 namespace core_gfx::open_gl
 {
 
-detail::ShaderBase::~ShaderBase() { glDeleteShader(mShaderId); }
+detail::ShaderBase::~ShaderBase() 
+{ 
+	if (mShaderId != 0) {
+		glDeleteShader(mShaderId); 
+	}
+}
 
 void detail::ShaderBase::Compile()
 {

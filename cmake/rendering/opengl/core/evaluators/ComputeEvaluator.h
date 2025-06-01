@@ -70,7 +70,9 @@ public:
 			outputBuffers[i].BindLocationIndexBase(i + inputBuffers.size());
 
 		glDispatchCompute(dispatchConfig[0], dispatchConfig[1], dispatchConfig[2]);
+		assert(glGetError() == GL_NO_ERROR);
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+		assert(glError == GL_NO_ERROR);
 
 		// Load all opengl buffers back to the supplied output buffers
 		[&]<size_t... I>(std::index_sequence<I...>)

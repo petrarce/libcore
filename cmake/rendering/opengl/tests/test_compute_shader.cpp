@@ -115,8 +115,8 @@ BOOST_FIXTURE_TEST_CASE(TestComputeEvaluatorSumBuffers, GLMesaTestFixture)
 
 	// Create evaluator and run computation
 	ComputeEvaluator evaluator(std::move(computeShader));
-	evaluator.Evaluate(std::array{ static_cast<int>(in1.size()), 1, 1 }, in1, in2, out);
-
+	evaluator.Evaluate(std::array{ static_cast<int>(in1->size()), 1, 1 }, in1, in2, out);
+	BOOST_REQUIRE(glGetError() == GL_NO_ERROR);
 	// Verify results
 	BOOST_TEST(*out == expected, boost::test_tools::per_element());
 }

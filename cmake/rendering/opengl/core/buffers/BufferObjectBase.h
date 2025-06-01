@@ -14,16 +14,8 @@ public:
 	BufferObjectBase();
 	virtual ~BufferObjectBase();
 
-	// Disallow copying
-	BufferObjectBase(const BufferObjectBase&) = delete;
-	BufferObjectBase& operator=(const BufferObjectBase&) = delete;
-
-	// Disallow moving
-	BufferObjectBase(BufferObjectBase&&) = delete;
-	BufferObjectBase& operator=(BufferObjectBase&&) = delete;
-
 protected:
-	GLuint m_id;
+	GLuint m_id{ 0 };
 };
 
 } // namespace open_gl

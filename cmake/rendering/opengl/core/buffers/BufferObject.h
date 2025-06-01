@@ -145,7 +145,9 @@ template<typename T>
 void BufferObject<Tgt>::LoadData(std::vector<T>& output)
 {
 	assert(output.size() * sizeof(T) == GetSize());
+	glBindBuffer(Tgt, m_id);
 	glGetBufferSubData(Tgt, 0, output.size() * sizeof(T), output.data());
+	assert(glErrorCheck() == GL_NO_ERROR);
 }
 template<GLenum Tgt>
 BufferObject<Tgt>::BufferObject(BufferObject&& other) noexcept
@@ -161,12 +163,13 @@ BufferObject<Tgt>::BufferObject(BufferObject&& other) noexcept
 template<GLenum Tgt>
 BufferObject<Tgt>& BufferObject<Tgt>::operator=(BufferObject&& other) noexcept
 {
-	if (this != &other) {
+	if (this != &other)
+	{
 		BufferObjectBase::operator=(std::move(other));
 		mMapRefCount = other.mMapRefCount;
 		mCachedMappedPtr = other.mCachedMappedPtr;
 		mAccessHint = other.mAccessHint;
-		
+
 		other.mMapRefCount = 0;
 		other.mCachedMappedPtr.reset();
 	}
