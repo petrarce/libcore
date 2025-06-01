@@ -43,6 +43,14 @@ public:
 	template<typename T>
 	explicit BufferObject(const std::vector<T>& data, GLenum accessHint = GL_STATIC_DRAW);
 
+	// Move operations
+	BufferObject(BufferObject&& other) noexcept;
+	BufferObject& operator=(BufferObject&& other) noexcept;
+
+	// Disallow copying
+	BufferObject(const BufferObject&) = delete;
+	BufferObject& operator=(const BufferObject&) = delete;
+
 	template<typename T>
 	void UpdateData(const std::vector<T>& data, GLintptr offset = 0);
 	template<class T>
@@ -54,6 +62,8 @@ public:
 private:
 	friend class MapBuffer<BufferObject<Tgt> >;
 
+	// WARNING: Moving BufferObject while mapped will break MapBuffer!
+	// TODO: Add proper handling for moved-from state in MapBuffer
 	int mMapRefCount{ 0 };
 	std::optional<void*> mCachedMappedPtr;
 	GLenum mAccessHint{ GL_STATIC_DRAW };
@@ -137,6 +147,32 @@ void BufferObject<Tgt>::LoadData(std::vector<T>& output)
 	assert(output.size() * sizeof(T) == GetSize());
 	glGetBufferSubData(Tgt, 0, output.size() * sizeof(T), output.data());
 }
+template<GLenum Tgt>
+BufferObject<Tgt>::BufferObject(BufferObject&& other) noexcept
+	: BufferObjectBase(std::move(other))
+	, mMapRefCount(other.mMapRefCount)
+	, mCachedMappedPtr(other.mCachedMappedPtr)
+	, mAccessHint(other.mAccessHint)
+{
+	other.mMapRefCount = 0;
+	other.mCachedMappedPtr.reset();
+}
+
+template<GLenum Tgt>
+BufferObject<Tgt>& BufferObject<Tgt>::operator=(BufferObject&& other) noexcept
+{
+	if (this != &other) {
+		BufferObjectBase::operator=(std::move(other));
+		mMapRefCount = other.mMapRefCount;
+		mCachedMappedPtr = other.mCachedMappedPtr;
+		mAccessHint = other.mAccessHint;
+		
+		other.mMapRefCount = 0;
+		other.mCachedMappedPtr.reset();
+	}
+	return *this;
+}
+
 template<GLenum Tgt>
 size_t BufferObject<Tgt>::GetSize() const noexcept
 {
