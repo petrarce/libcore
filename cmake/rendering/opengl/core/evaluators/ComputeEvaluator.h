@@ -35,6 +35,24 @@ static_assert(IsInputBuffer<InputBuffer<int> >);
 static_assert(IsOutputBuffer<OutputBuffer<int> >);
 static_assert(!IsInputBuffer<float>);
 
+/**
+ * @class ComputeEvaluator
+ * @brief A helper class for dispatching compute shaders and managing input/output buffers.
+ *
+ * This class provides a convenient interface for:
+ * - Setting up input/output buffers for compute shaders
+ * - Dispatching compute shader invocations
+ * - Managing memory barriers and synchronization
+ * - Transferring data between CPU and GPU
+ *
+ * Usage example:
+ * @code
+ * ComputeEvaluator evaluator;
+ * InputBuffer<float> input = ...;
+ * OutputBuffer<float> output = ...;
+ * evaluator.Evaluate({32, 32, 1}, input, output);
+ * @endcode
+ */
 class ComputeEvaluator
 {
 public:
@@ -52,6 +70,23 @@ public:
 		static constexpr bool value = IsOutputBuffer<T>;
 	};
 
+	/**
+	 * @brief Evaluate the compute shader with given input/output buffers
+	 *
+	 * @tparam InputsOutputs Variadic template for input/output buffer types
+	 * @param dispatchConfig The compute dispatch configuration [x, y, z] dimensions
+	 * @param buffers Variadic list of input/output buffers
+	 *
+	 * @note This method will:
+	 * 1. Separate inputs from outputs
+	 * 2. Create GPU buffers for all inputs/outputs
+	 * 3. Bind buffers to shader storage binding points
+	 * 4. Dispatch the compute shader
+	 * 5. Synchronize with memory barrier
+	 * 6. Read back output buffers to CPU
+	 *
+	 * @throws std::runtime_error if OpenGL errors occur during execution
+	 */
 	template<class... InputsOutputs>
 	void Evaluate(const std::array<int, 3>& dispatchConfig, InputsOutputs&&... buffers)
 	{
