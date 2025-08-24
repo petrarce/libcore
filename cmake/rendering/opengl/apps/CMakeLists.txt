@@ -29,9 +29,3 @@ add_executable_test(NAME simple-uniform-test
         simple_uniform_test/bricks.jpg
 
 )
-
-add_executable_test(NAME game-of-life
-    SOURCE game_of_life.cpp
-    LINK core::gfx
-
-)

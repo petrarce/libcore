@@ -1,0 +1,26 @@
+#version 440 core
+layout(local_size_x = 1);
+layout(binding = 0) buffer inp { bool inp_v[]; };
+layout(binding = 1) buffer outp { bool outp_v[]; };
+uniform uint width;
+
+uint idx(uint idx, uint offset_x, uint offset_y)
+{
+    return offset_x * width + y;
+}
+
+void main() {
+    uint baseIdx = gl_GlobalInvocationID.y + width * gl_GlobalInvocationID.x;
+    int alive_count =
+        inp_v[idx(baseIdx, -1, -1)] +
+        inp_v[idx(baseIdx, -1, 0)] +
+        inp_v[idx(baseIdx, -1, 1)] +
+        inp_v[idx(baseIdx, 0, -1)] +
+        inp_v[idx(baseIdx, 0, 1)] +
+        inp_v[idx(baseIdx, 1, -1)] +
+        inp_v[idx(baseIdx, 1, 0)] +
+        inp_v[idx(baseIdx, 1, 1)];
+    outp_v[baseIdx] =
+        inp_v[baseIdx] && (alive_count >=2 && alive_count <= 3)
+        || (!inp_v[baseIdx] && alive_count == 3);
+}
