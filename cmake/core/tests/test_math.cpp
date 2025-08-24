@@ -1,8 +1,12 @@
-#define BOOST_TEST_MODULE MyTestSuite
-#include <boost/test/included/unit_test.hpp>
+#define BOOST_TEST_NO_MAIN
+
+#include <boost/test/unit_test.hpp>
 #include <math.h>
 #include <absl/strings/str_format.h>
 #include <vector>
+
+BOOST_AUTO_TEST_SUITE(TestMath)
+
 BOOST_AUTO_TEST_CASE(MyTestCase)
 {
 	BOOST_CHECK(libcore::math::gcd(20, 15) == 5);
@@ -24,3 +28,5 @@ BOOST_AUTO_TEST_CASE(LogarythmWithArbitraryBase)
 		BOOST_CHECK_CLOSE(libcore::math::log_b<float>(i, 1. / (i * i)), -2, 1e-6);
 	}
 }
+
+BOOST_AUTO_TEST_SUITE_END()
