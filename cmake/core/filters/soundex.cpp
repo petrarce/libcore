@@ -4,6 +4,7 @@
 #include <cctype>
 #include <absl/strings/internal/str_format/parser.h>
 #include <algorithm>
+#include <absl/strings/str_format.h>
 namespace
 {
 uint8_t to_soundex_digit(char letter)
@@ -74,7 +75,7 @@ namespace libcore
 {
 namespace filters
 {
-std::optional<soundex::CharCodePair> soundex::encode(const std::string& str)
+std::optional<soundex::SoundexEncoding> soundex::encode(const std::string& str)
 {
 	// * Algorythm description:
 	// * 1. Assign B to a first letter of a word
@@ -144,7 +145,20 @@ std::optional<soundex::CharCodePair> soundex::encode(const std::string& str)
 	while (digit < 100 && digit != 0)
 		digit = digit * 10;
 
-	return std::optional(std::pair{ firstLetter, digit });
+	// encode first digit into last 6 bits and the number into the last 10 bits
+	return std::optional(SoundexEncoding(static_cast<uint16_t>((firstLetter - 'a') << 10 | digit)));
+}
+
+std::string soundex::encoding_to_string(const SoundexEncoding& encoding)
+{
+	char first = (*encoding >> 10) + 'a';
+	uint16_t suffix = (*encoding) & (0xffff >> 6);
+	return first + absl::StrFormat("%03i", suffix);
+}
+
+std::string operator~(soundex::SoundexEncoding encoding)
+{
+	return soundex::encoding_to_string(encoding);
 }
 } // namespace filters
 } // namespace libcore

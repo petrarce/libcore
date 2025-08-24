@@ -7,6 +7,7 @@
 
 #include <string>
 #include <optional>
+#include "../utils/StrongTypedef.h"
 
 namespace libcore
 {
@@ -22,9 +23,12 @@ namespace filters
 class soundex
 {
 public:
-	using CharCodePair = std::pair<char, uint16_t>;
-	static std::optional<CharCodePair> encode(const std::string& string);
+	using SoundexEncoding = StrongTypedef<struct SoundexEncoding_t, uint16_t>;
+
+	static std::optional<SoundexEncoding> encode(const std::string& string);
+	static std::string encoding_to_string(const SoundexEncoding& encoding);
 };
+std::string operator~(soundex::SoundexEncoding encoding);
 
 } // namespace filters
 } // namespace libcore
