@@ -1,6 +1,6 @@
-find_package(Boost COMPONENTS unit_test_framework REQUIRE)
+find_package( Boost COMPONENTS unit_test_framework REQUIRED )
 
-function(add_executable_test)
+function( add_executable_test )
     set(options OPTIONAL)
     set(oneValueArgs NAME)
     set(multiValueArgs SOURCES LINK DEPENDENCES RESOURCES)
@@ -17,9 +17,7 @@ function(add_executable_test)
         add_dependencies("${TESTNAME}" "${BOOSTTEST_DEPENDENCES}")
     endif()
 
-    message("BOOSTTEST_RESOURCES=${BOOSTTEST_RESOURCES}")
     if(NOT "${BOOSTTEST_RESOURCES}" STREQUAL "")
-        message("adding for BOOSTTEST_RESOURCES=${BOOSTTEST_RESOURCES}")
         set(OUTPUT_RESOURCES)
         foreach(resource ${BOOSTTEST_RESOURCES})
             set(SOURCE_RES "${CMAKE_CURRENT_SOURCE_DIR}/${resource}")
