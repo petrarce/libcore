@@ -7,6 +7,7 @@
 
 #include <string>
 #include <optional>
+#include <cstdint>
 #include "../utils/StrongTypedef.h"
 
 namespace libcore
