@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.16)
-cmake_policy(SET CMP0167 NEW)
 project(libcore LANGUAGES C CXX)
 include(default.cmake)
 
