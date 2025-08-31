@@ -4,7 +4,7 @@
 
 #ifndef UTILS_H
 #define UTILS_H
-
+#include <optional>
 namespace std
 {
 
@@ -28,4 +28,4 @@ std::ostream& operator<<(std::ostream& os, const std::pair<T1, T2>& v)
 }
 } // namespace std
 
-#endif //UTILS_H
+#endif // UTILS_H
