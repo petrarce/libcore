@@ -4,10 +4,10 @@ add_boost_test(
         test_main.cpp
         test_math.cpp
         test_soundex.cpp
+        test_two_sum_calculator.cpp
     LINK
         libcore::filters
         libcore::math
         absl::strings
         absl::flags
-
     )

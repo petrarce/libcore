@@ -10,6 +10,7 @@ function( add_executable_test )
     set(TESTNAME "${BOOSTTEST_NAME}")
 
     add_executable("${TESTNAME}" "${BOOSTTEST_SOURCES}")
+    target_compile_options("${TESTNAME}" PRIVATE -g -O0)
 
     target_link_libraries("${TESTNAME}" PRIVATE "${BOOSTTEST_LINK}")
 
