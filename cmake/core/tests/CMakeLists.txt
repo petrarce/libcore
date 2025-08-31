@@ -8,6 +8,7 @@ add_boost_test(
     LINK
         libcore::filters
         libcore::math
+        libcore::leetcode-solutions
         absl::strings
         absl::flags
     )

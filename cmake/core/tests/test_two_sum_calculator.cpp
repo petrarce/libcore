@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <boost/test/unit_test.hpp>
-#include <core/leetcode_solutions //two_sum_calculator.h>
+#include <core/leetcode_solutions/two_sum_calculator.h>
 #include "utils.h"
 using namespace libcore::solutions;
 
