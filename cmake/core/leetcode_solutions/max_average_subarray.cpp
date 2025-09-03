@@ -28,20 +28,12 @@ public:
 		double average = 0;
 		std::for_each(nums.begin(), nums.begin() + k,
 					  [&average, k](int n) { average += static_cast<double>(n) / k; });
-		int avgRangeBegin = 0;
 		double slidingAverage = average;
 		for (int i = k; i < nums.size(); ++i)
 		{
 			slidingAverage = slidingAverage - static_cast<double>(nums[i - k]) / k
 							 + static_cast<double>(nums[i]) / k;
-			std::cout << "avg: " << average << std::endl;
-			std::cout << "newAvg: " << slidingAverage << std::endl;
-
-			if (average < slidingAverage)
-			{
-				average = slidingAverage;
-				avgRangeBegin = i - k + 1;
-			}
+			average = std::max(slidingAverage, average);
 		}
 		return average;
 	}
