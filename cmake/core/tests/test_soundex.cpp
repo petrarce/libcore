@@ -1,7 +1,10 @@
 #define BOOST_TEST_NO_MAIN
 #include <boost/test/unit_test.hpp>
 #include <core/filters/soundex.h>
+#include "utils.h"
 using namespace libcore::filters;
+
+
 namespace std
 {
 std::ostream& operator<<(std::ostream& os, const soundex::SoundexEncoding& val)
@@ -9,18 +12,7 @@ std::ostream& operator<<(std::ostream& os, const soundex::SoundexEncoding& val)
 	return os << "{ " << ~val << " }";
 }
 
-std::ostream& operator<<(std::ostream& os, const std::optional<soundex::SoundexEncoding>& val)
-{
-	if (val.has_value())
-		return os << ~val.value();
-
-	return os << "undefined";
 }
-
-std::ostream& operator<<(std::ostream& os, const std::nullopt_t&) { return os << "undefined"; }
-
-} // namespace std
-
 BOOST_AUTO_TEST_SUITE(TestSoundexClass)
 
 BOOST_AUTO_TEST_CASE(TestSoundexEncoding)

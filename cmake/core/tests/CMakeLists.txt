@@ -4,10 +4,12 @@ add_boost_test(
         test_main.cpp
         test_math.cpp
         test_soundex.cpp
+        test_two_sum_calculator.cpp
+        test_linked_list_numbers_sum.cpp
     LINK
         libcore::filters
         libcore::math
+        libcore::leetcode-solutions
         absl::strings
         absl::flags
-
     )
