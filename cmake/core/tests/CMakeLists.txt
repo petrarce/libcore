@@ -6,6 +6,7 @@ add_boost_test(
         test_soundex.cpp
         test_two_sum_calculator.cpp
         test_linked_list_numbers_sum.cpp
+        test_max_number_of_vowels.cpp
     LINK
         libcore::filters
         libcore::math
