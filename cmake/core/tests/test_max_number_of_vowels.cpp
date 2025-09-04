@@ -3,6 +3,7 @@
 #include <core/filters/soundex.h>
 #include "utils.h"
 #include "core/leetcode_solutions/max_number_of_viwels.h"
+#include "core/leetcode_solutions/max_consecutive_ones.h"
 
 using namespace libcore::solutions;
 BOOST_AUTO_TEST_SUITE(TestMaxNumberOfVowels)
@@ -35,6 +36,18 @@ BOOST_AUTO_TEST_CASE(TestNormalStrings)
 	BOOST_CHECK_EQUAL(max_number_of_viwels::solve("aaaaa", 4), 4);
 	BOOST_CHECK_EQUAL(max_number_of_viwels::solve("aaaaa", 5), 5);
 	BOOST_CHECK_EQUAL(max_number_of_viwels::solve("abciiidef", 3), 3);
+}
+
+BOOST_AUTO_TEST_CASE(TestMaxConsequtiveOnes)
+{
+	BOOST_CHECK_EQUAL(max_consecutive_ones::solve({ 1, 1, 1 }, 1), 3);
+	BOOST_CHECK_EQUAL(max_consecutive_ones::solve({ 0, 0, 0 }, 3), 3);
+	BOOST_CHECK_EQUAL(max_consecutive_ones::solve({ 0, 0, 0 }, 2), 2);
+	BOOST_CHECK_EQUAL(max_consecutive_ones::solve({ 0, 0, 0 }, 1), 1);
+	BOOST_CHECK_EQUAL(max_consecutive_ones::solve({ 1, 0, 1, 0, 1, 0 }, 3), 6);
+	BOOST_CHECK_EQUAL(max_consecutive_ones::solve({ 1, 0, 1, 0, 1, 0 }, 2), 5);
+	BOOST_CHECK_EQUAL(max_consecutive_ones::solve({ 1, 0, 1, 0, 1, 0 }, 1), 3);
+	BOOST_CHECK_EQUAL(max_consecutive_ones::solve({ 1, 0, 1, 0, 1, 0 }, 0), 1);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

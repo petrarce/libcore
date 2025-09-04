@@ -5,5 +5,7 @@ add_library( leetcode-solutions
     linked_list_number_sums.h
         max_number_of_viwels.cpp
         max_number_of_viwels.h
+        max_consecutive_ones.cpp
+        max_consecutive_ones.h
 )
 add_library( libcore::leetcode-solutions ALIAS leetcode-solutions )
