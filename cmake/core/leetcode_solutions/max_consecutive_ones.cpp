@@ -5,7 +5,8 @@
 #include "max_consecutive_ones.h"
 
 #include <deque>
-
+#include <cassert>
+#include <core/utils/ring_buffer.h>
 namespace libcore
 {
 namespace solutions
@@ -14,40 +15,27 @@ namespace solutions
 namespace detail
 {
 
-template<class T>
-class ciclic_buffer_deque : public std::vector<T>
-{
-public:
-	explicit ciclic_buffer_deque(int capacity)
-		: std::vector<T>(capacity)
-	{
-	}
-	void push_back(const T& elem) { }
-
-private:
-	int start{ 0 };
-	int end{ 0 };
-};
-
 class Solution
 {
 public:
 	int longestOnes(const std::vector<int>& nums, int k)
 	{
-		std::deque<int> dq;
+		utils::ring_buffer<int> rb(k);
 		int arrayStartIdx = 0;
 		int maxOnes = 0;
 		for (int i = 0; i < nums.size(); ++i)
 		{
 			const auto n = nums[i];
-			if (!n)
+			if (k == 0 && !n)
+				arrayStartIdx = i + 1;
+			else if (!n)
 			{
-				dq.push_back(i);
-				if (dq.size() > k)
+				if (rb.size() == k)
 				{
-					arrayStartIdx = dq.front() + 1;
-					dq.pop_front();
+					arrayStartIdx = rb.front() + 1;
+					rb.pop_front();
 				}
+				rb.push_back(i);
 			}
 			maxOnes = std::max(maxOnes, i + 1 - arrayStartIdx);
 		}
