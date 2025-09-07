@@ -8,6 +8,8 @@ add_boost_test(
         test_linked_list_numbers_sum.cpp
         test_max_number_of_vowels.cpp
         test_ring_buffer.cpp
+        test_merge_alternately.cpp
+        test_string_gcd.cpp
     LINK
         libcore::filters
         libcore::math
