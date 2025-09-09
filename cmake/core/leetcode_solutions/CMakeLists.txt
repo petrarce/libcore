@@ -11,6 +11,8 @@ add_library( leetcode-solutions
         merge_strings_alternately.h
         strings_gcd.cpp
         strings_gcd.h
+        array_differences.cpp
+        array_differences.h
 )
 add_library( libcore::leetcode-solutions ALIAS leetcode-solutions )
 target_compile_options( leetcode-solutions PRIVATE -g -O0 )

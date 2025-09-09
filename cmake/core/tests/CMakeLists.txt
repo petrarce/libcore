@@ -10,6 +10,7 @@ add_boost_test(
         test_ring_buffer.cpp
         test_merge_alternately.cpp
         test_string_gcd.cpp
+        test_array_differences.cpp
     LINK
         libcore::filters
         libcore::math
