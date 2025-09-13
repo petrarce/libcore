@@ -1,5 +1,12 @@
 find_package( Boost COMPONENTS unit_test_framework REQUIRED )
 
+# Creates an executable and links it to the boost::unit_test_framework
+# parameters:
+# - NAME - test name
+# - SOURCES - list of source files
+# - LINK list of targets to which test executable should be linked
+# - DEPENDENCES - dependence targets.
+# - RESOURCES - list of files, that should be copied along the test directory
 function( add_executable_test )
     set(options OPTIONAL)
     set(oneValueArgs NAME)
@@ -37,6 +44,8 @@ function( add_executable_test )
 
 endfunction()
 
+# Wrapper over the add_executable_test
+# which adds a link dependence to Boost::unit_test_framework
 function(add_boost_test)
     set(options OPTIONAL)
     set(oneValueArgs NAME)
