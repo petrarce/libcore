@@ -16,6 +16,13 @@ public:
 	static int find(std::vector<int> values, int value);
 };
 
+// this binary search algo will find a lower bound of the array given a value
+// and then
+class binary_search_array_lower_bound
+{
+public:
+	static int find(std::vector<int> values, int value);
+};
 } // namespace katas
 } // namespace libcore
 
