@@ -13,6 +13,8 @@ add_library( leetcode-solutions
         strings_gcd.h
         array_differences.cpp
         array_differences.h
+        reverse_string.cpp
+        reverse_string.h
 )
 add_library( libcore::leetcode-solutions ALIAS leetcode-solutions )
 target_compile_options( leetcode-solutions PRIVATE -g -O0 )
