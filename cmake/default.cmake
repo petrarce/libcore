@@ -1,5 +1,5 @@
 find_package( absl REQUIRED)
-set(CMAKE_CXX_STANDARD 20 CACHE STRING "c++ standard")
+set(CMAKE_CXX_STANDARD 26 CACHE STRING "c++ standard")
 
 # Ensure asserts are enabled in all build types
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -UNDEBUG")

@@ -11,6 +11,7 @@ add_boost_test(
         test_merge_alternately.cpp
         test_string_gcd.cpp
         test_array_differences.cpp
+        test_merged_array_median.cpp
     LINK
         libcore::filters
         libcore::math
