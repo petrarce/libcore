@@ -25,6 +25,8 @@ jobs:
       run: sudo apt-get install
         libboost-test-dev
         libboost-dev
+        libboost-program-options-dev
+        libfmt-dev
         libabsl-dev
         libglm-dev
         libosmesa6-dev
