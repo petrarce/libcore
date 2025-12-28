@@ -11,10 +11,12 @@ add_boost_test(
         test_merge_alternately.cpp
         test_string_gcd.cpp
         test_array_differences.cpp
+        test_recurrence_size.cpp
     LINK
         libcore::filters
         libcore::math
         libcore::leetcode-solutions
+        euler-project-solution-lib
         absl::strings
         absl::flags
     )
