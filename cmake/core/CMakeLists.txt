@@ -1,4 +1,5 @@
 add_subdirectory(math)
 add_subdirectory(filters)
 add_subdirectory(leetcode_solutions)
+add_subdirectory(euler_project)
 add_subdirectory(tests)
