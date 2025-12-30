@@ -29,4 +29,17 @@ BOOST_AUTO_TEST_CASE(LogarythmWithArbitraryBase)
 	}
 }
 
+BOOST_AUTO_TEST_CASE(TestPrime)
+{
+	BOOST_CHECK_EQUAL(libcore::math::is_prime(1u), true);
+	BOOST_CHECK_EQUAL(libcore::math::is_prime(2u), true);
+	BOOST_CHECK_EQUAL(libcore::math::is_prime(4u), false);
+	BOOST_CHECK_EQUAL(libcore::math::is_prime(6u), false);
+
+	BOOST_CHECK_EQUAL(libcore::math::is_prime(5u), true);
+	BOOST_CHECK_EQUAL(libcore::math::is_prime(13u), true);
+	BOOST_CHECK_EQUAL(libcore::math::is_prime(11u), true);
+	BOOST_CHECK_EQUAL(libcore::math::is_prime(17u), true);
+	BOOST_CHECK_EQUAL(libcore::math::is_prime(7u), true);
+}
 BOOST_AUTO_TEST_SUITE_END()
