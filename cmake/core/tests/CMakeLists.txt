@@ -12,6 +12,7 @@ add_boost_test(
         test_string_gcd.cpp
         test_array_differences.cpp
         test_recurrence_size.cpp
+        test_problem_27.cpp
     LINK
         libcore::filters
         libcore::math
