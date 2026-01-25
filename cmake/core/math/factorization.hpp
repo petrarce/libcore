@@ -3,7 +3,7 @@
 //
 
 #include <vector>
-
+#include <stdexcept>
 namespace libcore
 {
 namespace math
@@ -40,5 +40,16 @@ std::vector<std::pair<T, T> > simple_factorize(const T& value)
 	}
 	return fractions;
 }
+
+template<std::unsigned_integral T>
+std::vector<std::pair<T, T> > factorize_a_pow_b(T a, T b)
+{
+	auto factors = simple_factorize(a);
+	for (auto& factor : factors)
+		factor.second *= b;
+	;
+	return factors;
+}
+
 } // namespace math
 } // namespace libcore

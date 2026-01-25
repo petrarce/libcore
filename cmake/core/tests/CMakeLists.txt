@@ -16,6 +16,7 @@ add_boost_test(
         test_problem_28.cpp
         test_ranges_v3.cpp
         test_factorization.cpp
+        test_euler_problem_29.cpp
     LINK
         libcore::filters
         libcore::math

@@ -1,6 +1,7 @@
 #include "problem_26.h"
 #include "problem_27.h"
 #include "problem_28.h"
+#include "problem_29.h"
 
 #include <iostream>
 #include <concepts>
@@ -33,6 +34,8 @@ solution_base& solutions_factory(int solution_number)
 		return gen_solution_class<problem_27>();
 	if (solution_number == 28)
 		return gen_solution_class<problem_28>();
+	if (solution_number == 29)
+		return gen_solution_class<problem_29>();
 	throw std::invalid_argument(
 		fmt::format("solution number {} doesn't exist yet", solution_number));
 }

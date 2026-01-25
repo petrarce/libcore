@@ -23,4 +23,8 @@ BOOST_AUTO_TEST_CASE(TestSimpleFactorization)
 					  ListFactors({ { 2, 1 }, { 3, 2 }, { 5, 1 }, { 7, 2 } }));
 }
 
+BOOST_AUTO_TEST_CASE(TestFactorizeApowB)
+{
+	BOOST_CHECK_EQUAL(factorize_a_pow_b(5u * 7u * 7u, 3u), ListFactors({ { 5u, 3u }, { 7u, 6u } }));
+}
 BOOST_AUTO_TEST_SUITE_END()
