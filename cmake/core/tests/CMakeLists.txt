@@ -15,6 +15,7 @@ add_boost_test(
         test_problem_27.cpp
         test_problem_28.cpp
         test_ranges_v3.cpp
+        test_factorization.cpp
     LINK
         libcore::filters
         libcore::math
