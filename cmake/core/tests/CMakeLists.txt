@@ -14,10 +14,14 @@ add_boost_test(
         test_recurrence_size.cpp
         test_problem_27.cpp
         test_problem_28.cpp
+        test_ranges_v3.cpp
+        test_factorization.cpp
+        test_euler_problem_29.cpp
     LINK
         libcore::filters
         libcore::math
         libcore::leetcode-solutions
+        range-v3::range-v3
         euler-project-solution-lib
         absl::strings
         absl::flags

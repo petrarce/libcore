@@ -34,6 +34,14 @@ std::ostream& operator<<(std::ostream& os, const std::vector<T>& vec)
 	std::ranges::for_each(vec, [&](const auto& v) { os << " " << v << ","; });
 	return os << "}";
 }
+
+template<class... Args>
+std::ostream& operator<<(std::ostream& os, const std::tuple<Args...> t)
+{
+	os << "(";
+	std::apply([&](auto... elements) { ((os << elements << ", "), ...); }, t);
+	return os << ")";
+}
 } // namespace std
 
 #endif // UTILS_H

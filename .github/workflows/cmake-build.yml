@@ -31,6 +31,7 @@ jobs:
         libglm-dev
         libosmesa6-dev
         libglfw3-dev
+        librange-v3-dev
 
     - name: Configure CMake
       working-directory: ${{github.workspace}}/cmake
