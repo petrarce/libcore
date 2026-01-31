@@ -5,6 +5,8 @@ add_library(euler-project-solution-lib
     problem_27.h
     problem_28.cpp
     problem_28.h
+        problem_29.cpp
+        problem_29.h
 )
 target_link_libraries( euler-project-solution-lib
     PRIVATE
