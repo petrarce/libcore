@@ -16,8 +16,10 @@ import android.view.Gravity
 import android.view.WindowManager
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.ViewTreeLifecycleOwner
-import androidx.lifecycle.ProcessLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LifecycleRegistry
+import androidx.lifecycle.R as LifecycleR
 import com.example.gesturehelper.capture.DebugScreenshotProcessor
 import com.example.gesturehelper.ui.FloatingButtonContent
 import com.example.lib.capture.ScreenCaptureManager
@@ -25,13 +27,17 @@ import com.example.lib.capture.ScreenCaptureResult
 import com.example.lib.capture.ScreenshotProcessor
 import com.example.lib.overlay.FloatingOverlayManager
 
-class GestureHelperService : Service() {
+class GestureHelperService : Service(), LifecycleOwner {
     private lateinit var overlayManager: FloatingOverlayManager
     private lateinit var captureManager: ScreenCaptureManager
     private lateinit var processor: ScreenshotProcessor
+    private val lifecycleRegistry = LifecycleRegistry(this)
+
+    override val lifecycle: Lifecycle get() = lifecycleRegistry
 
     override fun onCreate() {
         super.onCreate()
+        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
         overlayManager = FloatingOverlayManager(
             getSystemService(Context.WINDOW_SERVICE) as WindowManager
         )
@@ -40,6 +46,8 @@ class GestureHelperService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
+
         val resultCode = intent?.getIntExtra(
             MainActivity.EXTRA_RESULT_CODE, Activity.RESULT_CANCELED
         ) ?: Activity.RESULT_CANCELED
@@ -66,7 +74,7 @@ class GestureHelperService : Service() {
 
     private fun showFloatingButton() {
         val composeView = ComposeView(this)
-        ViewTreeLifecycleOwner.set(composeView, ProcessLifecycleOwner.get())
+        composeView.setTag(LifecycleR.id.view_tree_lifecycle_owner, this@GestureHelperService)
         composeView.setContent {
             MaterialTheme {
                 FloatingButtonContent(onTap = ::onButtonTap)
@@ -99,6 +107,7 @@ class GestureHelperService : Service() {
     }
 
     override fun onDestroy() {
+        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
         if (::captureManager.isInitialized) captureManager.stopCapture()
         overlayManager.removeAll()
         super.onDestroy()
