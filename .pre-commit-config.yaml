@@ -2,15 +2,22 @@
 # See https://pre-commit.com/hooks.html for more hooks
 exclude: ^(cmake/rendering/opengl/glad*|cmake/3rdparty*)
 repos:
-- repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v6.0.0
-  hooks:
-  - id: trailing-whitespace
-  - id: end-of-file-fixer
-  - id: check-yaml
-  - id: check-added-large-files
-- repo: https://github.com/pre-commit/mirrors-clang-format
-  rev: 'v15.0.7'
-  hooks:
-  - id: clang-format
-    types_or: [c++, c, cuda]
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+    - id: trailing-whitespace
+    - id: end-of-file-fixer
+    - id: check-yaml
+    - id: check-added-large-files
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: 'v15.0.7'
+    hooks:
+    - id: clang-format
+      types_or: [c++, c, cuda]
+  - repo: local
+    hooks:
+      - id: ktlint-check
+        name: Ktlint Check
+        entry: android/scripts/ktlint-check.sh
+        language: script
+        types: [kotlin, java]
