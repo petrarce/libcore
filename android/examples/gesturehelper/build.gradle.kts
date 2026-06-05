@@ -44,6 +44,7 @@ dependencies {
     implementation(libs.android.core.ktx)
     implementation(libs.lifecycle.runtime)
     implementation(libs.lifecycle.process)
+    implementation(libs.savedstate.ktx)
     implementation(platform(libs.compose.bom))
     implementation(libs.bundles.compose)
     implementation(libs.compose.ui.tooling.preview)

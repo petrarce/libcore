@@ -3,20 +3,20 @@ agp = "8.2.2"
 kotlin = "1.9.22"
 core-ktx = "1.13.1"
 appcompat = "1.7.0"
-lifecycle = "2.8.7"
+lifecycle = "2.8.4"
 junit = "4.13.2"
 androidx-test-ext = "1.2.1"
 espresso-core = "3.6.1"
 compose-bom = "2024.09.00"
 activity-compose = "1.9.2"
 compose-compiler = "1.5.10"
+savedstate = "1.2.1"
 
 [libraries]
 android-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
 android-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 lifecycle-runtime = { group = "androidx.lifecycle", name = "lifecycle-runtime", version.ref = "lifecycle" }
 lifecycle-process = { group = "androidx.lifecycle", name = "lifecycle-process", version.ref = "lifecycle" }
-lifecycle-extensions = { group = "androidx.lifecycle", name = "lifecycle-extensions", version.ref = "lifecycle" }
 
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-test-ext = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-test-ext" }
@@ -30,6 +30,7 @@ compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 compose-activity = { group = "androidx.activity", name = "activity-compose", version.ref = "activity-compose" }
 compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+savedstate-ktx = { group = "androidx.savedstate", name = "savedstate-ktx", version.ref = "savedstate" }
 
 [bundles]
 compose = ["compose-ui", "compose-material3", "compose-activity"]

@@ -13,13 +13,20 @@ import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import android.view.Gravity
+import android.view.View
 import android.view.WindowManager
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
-import androidx.lifecycle.R as LifecycleR
+import androidx.lifecycle.ViewModelStore
+import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.setViewTreeLifecycleOwner
+import androidx.lifecycle.setViewTreeViewModelStoreOwner
+import androidx.savedstate.SavedStateRegistryController
+import androidx.savedstate.SavedStateRegistryOwner
+import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.example.gesturehelper.capture.DebugScreenshotProcessor
 import com.example.gesturehelper.ui.FloatingButtonContent
 import com.example.lib.capture.ScreenCaptureManager
@@ -31,13 +38,46 @@ class GestureHelperService : Service(), LifecycleOwner {
     private lateinit var overlayManager: FloatingOverlayManager
     private lateinit var captureManager: ScreenCaptureManager
     private lateinit var processor: ScreenshotProcessor
-    private val lifecycleRegistry = LifecycleRegistry(this)
 
-    override val lifecycle: Lifecycle get() = lifecycleRegistry
+	private class ViewLifecycleOwner : LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner {
+		override val lifecycle = LifecycleRegistry(this)
+		override val viewModelStore = ViewModelStore()
+		private val savedStateRegistryController = SavedStateRegistryController.create(this)
+		override val savedStateRegistry = savedStateRegistryController.savedStateRegistry
+
+		fun attachToView(view: View?){
+			view?.setViewTreeLifecycleOwner(this)
+			view?.setViewTreeViewModelStoreOwner(this)
+			view?.setViewTreeSavedStateRegistryOwner(this)
+		}
+		fun onCreate(){
+			savedStateRegistryController.performRestore(null)
+			lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
+		}
+		fun onStart() {
+			lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_START)
+
+		}
+		fun onResume() {
+			lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
+		}
+
+		fun onStop() {
+			lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
+		}
+
+		fun onDestroy() {
+			lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+			viewModelStore.clear()
+		}
+	}
+	private val viewLifecycleOwner = ViewLifecycleOwner();
+	override val lifecycle: Lifecycle
+		get() { return viewLifecycleOwner.lifecycle }
 
     override fun onCreate() {
         super.onCreate()
-        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
+	    viewLifecycleOwner.onCreate()
         overlayManager = FloatingOverlayManager(
             getSystemService(Context.WINDOW_SERVICE) as WindowManager
         )
@@ -46,7 +86,8 @@ class GestureHelperService : Service(), LifecycleOwner {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
+	    viewLifecycleOwner.onStart()
+	    viewLifecycleOwner.onResume()
 
         val resultCode = intent?.getIntExtra(
             MainActivity.EXTRA_RESULT_CODE, Activity.RESULT_CANCELED
@@ -74,7 +115,7 @@ class GestureHelperService : Service(), LifecycleOwner {
 
     private fun showFloatingButton() {
         val composeView = ComposeView(this)
-        composeView.setTag(LifecycleR.id.view_tree_lifecycle_owner, this@GestureHelperService)
+	    viewLifecycleOwner.attachToView(composeView)
         composeView.setContent {
             MaterialTheme {
                 FloatingButtonContent(onTap = ::onButtonTap)
@@ -107,7 +148,8 @@ class GestureHelperService : Service(), LifecycleOwner {
     }
 
     override fun onDestroy() {
-        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+        viewLifecycleOwner.onStop()
+        viewLifecycleOwner.onDestroy()
         if (::captureManager.isInitialized) captureManager.stopCapture()
         overlayManager.removeAll()
         super.onDestroy()
