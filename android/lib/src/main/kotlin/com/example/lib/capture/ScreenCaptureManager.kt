@@ -90,6 +90,7 @@ class ScreenCaptureManager(
 		val wm = context.getSystemService<WindowManager>()!!
 		val metrics = DisplayMetrics()
 		wm.defaultDisplay.getRealMetrics(metrics)
+		// test if ktlint actually works
 		return metrics
 	}
 }

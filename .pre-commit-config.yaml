@@ -19,5 +19,6 @@ repos:
       - id: ktlint-check
         name: Ktlint Check
         entry: android/scripts/ktlint-check.sh
-        language: script
-        types: [kotlin, java]
+        language: unsupported_script
+        types: [file]
+        files: \.kt$
