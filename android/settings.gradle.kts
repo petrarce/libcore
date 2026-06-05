@@ -9,6 +9,7 @@ pluginManagement {
         id("com.android.library") version "8.2.2"
         id("org.jetbrains.kotlin.android") version "1.9.22"
         id("com.dorongold.task-tree") version "4.0.1"
+        id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
     }
 }
 
