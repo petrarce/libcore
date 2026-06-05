@@ -1,11 +1,11 @@
 package com.example.lib.extensions
 
-import org.junit.Test
 import org.junit.Assert.*
+import org.junit.Test
 
 class StringExtTest {
-    @Test
-    fun testCapitalizeFirstLetter() {
-        assertEquals("Android", "android".capitalizeFirstLetter())
-    }
+	@Test
+	fun testCapitalizeFirstLetter() {
+		assertEquals("Android", "android".capitalizeFirstLetter())
+	}
 }

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<baseline version="1.0">
+    <file name="src/main/kotlin/com/example/libexample/MainActivity.kt">
+        <error line="27" column="5" source="standard:function-naming" />
+    </file>
+    <file name="src/main/kotlin/com/example/gesturehelper/ui/FloatingButtonContent.kt">
+        <error line="20" column="5" source="standard:function-naming" />
+    </file>
+</baseline>

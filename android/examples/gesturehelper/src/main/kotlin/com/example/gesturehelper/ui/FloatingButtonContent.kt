@@ -18,19 +18,20 @@ import com.example.gesturehelper.R
 
 @Composable
 fun FloatingButtonContent(onTap: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .size(56.dp)
-            .shadow(4.dp, CircleShape)
-            .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.primaryContainer)
-            .clickable(onClick = onTap),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            painter = painterResource(R.drawable.ic_camera),
-            contentDescription = "Capture screenshot",
-            tint = MaterialTheme.colorScheme.onPrimaryContainer
-        )
-    }
+	Box(
+		modifier =
+			Modifier
+				.size(56.dp)
+				.shadow(4.dp, CircleShape)
+				.clip(CircleShape)
+				.background(MaterialTheme.colorScheme.primaryContainer)
+				.clickable(onClick = onTap),
+		contentAlignment = Alignment.Center,
+	) {
+		Icon(
+			painter = painterResource(R.drawable.ic_camera),
+			contentDescription = "Capture screenshot",
+			tint = MaterialTheme.colorScheme.onPrimaryContainer,
+		)
+	}
 }

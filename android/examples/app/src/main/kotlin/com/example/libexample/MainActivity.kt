@@ -10,24 +10,24 @@ import com.example.lib.ui.compose.GreetingText
 import com.example.lib.ui.theme.LibcoreTheme
 
 class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            LibcoreTheme {
-                Column {
-                    GreetingText("Android")
-                }
-            }
-        }
-    }
+	override fun onCreate(savedInstanceState: Bundle?) {
+		super.onCreate(savedInstanceState)
+		setContent {
+			LibcoreTheme {
+				Column {
+					GreetingText("Android")
+				}
+			}
+		}
+	}
 }
 
 @Preview(showSystemUi = true)
 @Composable
 fun PreviewView() {
-    LibcoreTheme {
-        Column {
-            GreetingText("Android")
-        }
-    }
+	LibcoreTheme {
+		Column {
+			GreetingText("Android")
+		}
+	}
 }
