@@ -12,18 +12,20 @@ import android.media.projection.MediaProjectionManager
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
+import android.util.Log.v
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
-import android.widget.Toast
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.splineBasedDecay
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,10 +34,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.util.VelocityTracker
+import androidx.compose.ui.input.pointer.util.addPointerInputChange
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
@@ -52,6 +58,9 @@ import com.example.lib.capture.ScreenCaptureManager
 import com.example.lib.capture.ScreenCaptureResult
 import com.example.lib.capture.ScreenshotProcessor
 import com.example.lib.overlay.FloatingOverlayManager
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 class GestureHelperService :
 	Service(),
@@ -99,6 +108,7 @@ class GestureHelperService :
 	}
 
 	private val viewLifecycleOwner = ViewLifecycleOwner()
+	private var surfaceVisible = mutableStateOf(false)
 	override val lifecycle: Lifecycle
 		get() {
 			return viewLifecycleOwner.lifecycle
@@ -149,8 +159,10 @@ class GestureHelperService :
 		return START_NOT_STICKY
 	}
 
-	private fun addFloatingWindow( gravity: Int, content: @Composable (windowManager: WindowManager, params: WindowManager.LayoutParams, view: View ) -> Unit)
-	{
+	private fun addFloatingWindow(
+		gravity: Int,
+		content: @Composable (windowManager: WindowManager, params: WindowManager.LayoutParams, view: View) -> Unit,
+	) {
 		val composeView = ComposeView(this)
 		viewLifecycleOwner.attachToView(composeView)
 		val params =
@@ -172,39 +184,62 @@ class GestureHelperService :
 		}
 
 		overlayManager.add(composeView, params)
-
 	}
+
 	private fun showFloatingButton() {
 		addFloatingWindow(Gravity.TOP or Gravity.START) { wm, p, v ->
-			FloatingButtonContent(onTap = ::onButtonTap)
+			var showSurface by remember { surfaceVisible }
+			FloatingButtonContent {
+				showSurface = !showSurface
+// 				onButtonTap()
+			}
 		}
 		addFloatingWindow(Gravity.BOTTOM or Gravity.END) { wm, p, v ->
-			val context = LocalContext.current
-			var viewPosX by remember { mutableStateOf(p.x) }
-			var viewPosY by remember { mutableStateOf(p.y) }
+			val viewPosX = remember { Animatable(p.x.toFloat()) }
+			val velocityTracker = remember { VelocityTracker() }
+			val windowBounds = wm.currentWindowMetrics.bounds
+			val maxX = windowBounds.width() - v.width
+
+			LaunchedEffect(viewPosX.value, viewPosX.value) {
+				p.apply { x = viewPosX.value.roundToInt() }
+				wm.updateViewLayout(v, p)
+			}
 			Surface(
-
-				modifier = Modifier
-					.size(100.dp, 200.dp)
-					.clickable {
-						Toast.makeText(context, "Surface clicked", Toast.LENGTH_SHORT).show()
-					}.pointerInput(null) {
-						detectDragGesturesAfterLongPress(onDrag = { change, dragAmount ->
-
-
-							viewPosX -= dragAmount.x.toInt()
-							viewPosY -= dragAmount.y.toInt()
-							p.apply {
-								x = viewPosX
-								y = viewPosY
+				shape = RoundedCornerShape(16.dp),
+				modifier =
+					Modifier
+						.size(100.dp, 200.dp)
+						.pointerInput(null) {
+							coroutineScope {
+								detectDragGestures(
+									onDragStart = {
+										velocityTracker.resetTracking()
+									},
+									onDrag = { change, dragAmount ->
+										launch {
+											viewPosX.snapTo((viewPosX.value - dragAmount.x).coerceIn(0f, maxX.toFloat()))
+										}
+										velocityTracker.addPointerInputChange(change)
+										change.consume()
+									},
+									onDragEnd = {
+										val velocity = velocityTracker.calculateVelocity(Velocity(1000f, 1000f))
+										launch {
+											viewPosX.animateDecay(
+												initialVelocity = -velocity.x,
+												animationSpec = splineBasedDecay(Density(2f)),
+											) {
+												val clamped = value.coerceIn(0f, maxX.toFloat())
+												if (clamped != value) {
+													launch { snapTo(clamped) }
+												}
+											}
+										}
+									},
+								)
 							}
-							Toast.makeText(context, "Dragging to {${p.x}, ${p.y}", Toast.LENGTH_SHORT).show()
-
-							wm.updateViewLayout(v, p)
-
-						})
-					}
-				, color = Color.Blue
+						},
+				color = Color.Blue,
 			) {
 			}
 		}
@@ -265,8 +300,8 @@ fun MainView(
 ) {
 	Box(
 		modifier =
-			modifier.fillMaxSize()
-	){
+			modifier.fillMaxSize(),
+	) {
 		FloatingButtonContent(
 			modifier =
 				Modifier
