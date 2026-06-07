@@ -15,8 +15,19 @@ import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
@@ -122,7 +133,6 @@ class GestureHelperService :
 			val mpManager = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
 			val mediaProjection = mpManager.getMediaProjection(resultCode, data)
 			captureManager = ScreenCaptureManager(this, mediaProjection)
-			captureManager.startCapture()
 			showFloatingButton()
 		} else {
 			stopSelf()
@@ -136,7 +146,7 @@ class GestureHelperService :
 		viewLifecycleOwner.attachToView(composeView)
 		composeView.setContent {
 			MaterialTheme {
-				FloatingButtonContent(onTap = ::onButtonTap)
+				MainView(modifier = Modifier.fillMaxSize(), ::onButtonTap)
 			}
 		}
 
@@ -204,4 +214,38 @@ class GestureHelperService :
 		private const val CHANNEL_ID = "gesture_helper_channel"
 		private const val NOTIFICATION_ID = 1
 	}
+}
+
+@Composable
+fun MainView(
+	modifier: Modifier = Modifier,
+	onTap: () -> Unit,
+) {
+	Box(
+		modifier =
+			modifier
+				.fillMaxSize()
+				.pointerInput(null, null, {}),
+	) {
+		FloatingButtonContent(
+			modifier =
+				Modifier
+					.align(Alignment.TopStart),
+			onTap = onTap,
+		)
+		Surface(
+			modifier =
+				Modifier
+					.align(Alignment.BottomEnd)
+					.size(10.dp, 20.dp),
+			color = Color.Blue,
+		) {
+		}
+	}
+}
+
+@Preview(showSystemUi = true)
+@Composable
+fun MainVeiwPreview() {
+	MainView(modifier = Modifier.fillMaxSize(), {})
 }

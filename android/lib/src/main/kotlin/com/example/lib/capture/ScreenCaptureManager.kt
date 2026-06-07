@@ -9,6 +9,7 @@ import android.media.Image
 import android.media.ImageReader
 import android.media.projection.MediaProjection
 import android.util.DisplayMetrics
+import android.util.Log
 import android.view.WindowManager
 import androidx.core.content.getSystemService
 
@@ -18,10 +19,21 @@ class ScreenCaptureManager(
 ) {
 	private var imageReader: ImageReader? = null
 	private var virtualDisplay: VirtualDisplay? = null
+	private val mpCallback = object : MediaProjection.Callback() {}
 
-	fun startCapture(): ScreenCaptureResult =
+	init {
+		when (val res = startCapture()) {
+			is ScreenCaptureResult.Success -> Log.d(TAG, "Start Capturing")
+			is ScreenCaptureResult.Error -> Log.d(TAG, "Unable to start capturing: ${res.exception}")
+			else -> {}
+		}
+	}
+
+	private fun startCapture(): ScreenCaptureResult =
 		try {
 			val metrics = displayMetrics()
+			mediaProjection.registerCallback(mpCallback, null)
+
 			imageReader =
 				ImageReader.newInstance(
 					metrics.widthPixels,
@@ -66,6 +78,7 @@ class ScreenCaptureManager(
 		imageReader?.close()
 		virtualDisplay = null
 		imageReader = null
+		mediaProjection.unregisterCallback(mpCallback)
 	}
 
 	private fun imageToBitmap(image: Image): Bitmap {
@@ -92,5 +105,9 @@ class ScreenCaptureManager(
 		wm.defaultDisplay.getRealMetrics(metrics)
 		// test if ktlint actually works
 		return metrics
+	}
+
+	companion object {
+		private val TAG = this.javaClass.simpleName
 	}
 }

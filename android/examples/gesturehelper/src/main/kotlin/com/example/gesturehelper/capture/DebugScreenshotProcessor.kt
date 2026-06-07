@@ -69,8 +69,8 @@ class DebugScreenshotProcessor(
 	}
 
 	private companion object {
-		const val PREVIEW_MAX_W = 360
-		const val PREVIEW_MAX_H = 640
+		const val PREVIEW_MAX_W = 600
+		const val PREVIEW_MAX_H = 1200
 		const val DISMISS_DELAY_MS = 10_000L
 	}
 }

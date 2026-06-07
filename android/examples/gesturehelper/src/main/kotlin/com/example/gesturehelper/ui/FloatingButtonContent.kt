@@ -17,10 +17,13 @@ import androidx.compose.ui.unit.dp
 import com.example.gesturehelper.R
 
 @Composable
-fun FloatingButtonContent(onTap: () -> Unit) {
+fun FloatingButtonContent(
+	modifier: Modifier = Modifier,
+	onTap: () -> Unit,
+) {
 	Box(
 		modifier =
-			Modifier
+			modifier
 				.size(56.dp)
 				.shadow(4.dp, CircleShape)
 				.clip(CircleShape)
