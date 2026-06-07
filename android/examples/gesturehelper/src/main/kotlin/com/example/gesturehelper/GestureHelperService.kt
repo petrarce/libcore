@@ -15,17 +15,25 @@ import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
+import android.widget.Toast
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -141,31 +149,65 @@ class GestureHelperService :
 		return START_NOT_STICKY
 	}
 
-	private fun showFloatingButton() {
+	private fun addFloatingWindow( gravity: Int, content: @Composable (windowManager: WindowManager, params: WindowManager.LayoutParams, view: View ) -> Unit)
+	{
 		val composeView = ComposeView(this)
 		viewLifecycleOwner.attachToView(composeView)
-		composeView.setContent {
-			MaterialTheme {
-				MainView(modifier = Modifier.fillMaxSize(), ::onButtonTap)
-			}
-		}
-
 		val params =
 			WindowManager
 				.LayoutParams(
 					WindowManager.LayoutParams.WRAP_CONTENT,
 					WindowManager.LayoutParams.WRAP_CONTENT,
 					WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-					WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-						WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+					WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
 					PixelFormat.TRANSLUCENT,
 				).apply {
-					gravity = Gravity.TOP or Gravity.START
+					this.gravity = gravity
 					x = 16
 					y = 100
 				}
+		val windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
+		composeView.setContent {
+			content(windowManager, params, composeView)
+		}
 
 		overlayManager.add(composeView, params)
+
+	}
+	private fun showFloatingButton() {
+		addFloatingWindow(Gravity.TOP or Gravity.START) { wm, p, v ->
+			FloatingButtonContent(onTap = ::onButtonTap)
+		}
+		addFloatingWindow(Gravity.BOTTOM or Gravity.END) { wm, p, v ->
+			val context = LocalContext.current
+			var viewPosX by remember { mutableStateOf(p.x) }
+			var viewPosY by remember { mutableStateOf(p.y) }
+			Surface(
+
+				modifier = Modifier
+					.size(100.dp, 200.dp)
+					.clickable {
+						Toast.makeText(context, "Surface clicked", Toast.LENGTH_SHORT).show()
+					}.pointerInput(null) {
+						detectDragGesturesAfterLongPress(onDrag = { change, dragAmount ->
+
+
+							viewPosX -= dragAmount.x.toInt()
+							viewPosY -= dragAmount.y.toInt()
+							p.apply {
+								x = viewPosX
+								y = viewPosY
+							}
+							Toast.makeText(context, "Dragging to {${p.x}, ${p.y}", Toast.LENGTH_SHORT).show()
+
+							wm.updateViewLayout(v, p)
+
+						})
+					}
+				, color = Color.Blue
+			) {
+			}
+		}
 	}
 
 	private fun onButtonTap() {
@@ -223,10 +265,8 @@ fun MainView(
 ) {
 	Box(
 		modifier =
-			modifier
-				.fillMaxSize()
-				.pointerInput(null, null, {}),
-	) {
+			modifier.fillMaxSize()
+	){
 		FloatingButtonContent(
 			modifier =
 				Modifier
