@@ -1,7 +1,26 @@
+# https://editorconfig.org
 root = true
 
 [*]
 indent_style = tab
+indent_size = 4
+max_line_length = 120
+
+end_of_line = lf
+
 trim_trailing_whitespace = true
 insert_final_newline = true
 charset = utf-8
+
+[*.{kt,kts}]
+ktlint_code_style = ktlint_official
+ktlint_ignore_back_ticked_identifier = true
+
+ktlint_standard = enabled
+
+# Don't allow any wildcard imports
+ij_kotlin_packages_to_use_import_on_demand = unset
+
+# Prevent wildcard imports
+ij_kotlin_name_count_to_use_star_import = 99
+ij_kotlin_name_count_to_use_star_import_for_members = 99
