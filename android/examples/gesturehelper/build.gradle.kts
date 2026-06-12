@@ -62,6 +62,7 @@ dependencies {
 	implementation(libs.lifecycle.runtime)
 	implementation(libs.lifecycle.process)
 	implementation(libs.savedstate.ktx)
+	implementation(libs.google.genai)
 	implementation(platform(libs.compose.bom))
 	implementation(libs.bundles.compose)
 	implementation(libs.compose.ui.tooling.preview)
