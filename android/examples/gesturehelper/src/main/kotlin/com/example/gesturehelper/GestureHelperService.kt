@@ -1,16 +1,12 @@
 package com.example.gesturehelper
 
 import android.app.Activity
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.Service
 import android.content.Context
+import android.content.Context.WINDOW_SERVICE
 import android.content.Intent
 import android.graphics.PixelFormat
 import android.media.projection.MediaProjectionManager
 import android.os.Build
-import android.os.IBinder
 import android.util.Log
 import android.view.Gravity
 import android.view.View
@@ -57,7 +53,7 @@ import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 class GestureHelperService :
-	Service(),
+	BackgroundServiceBase(),
 	LifecycleOwner {
 	private lateinit var overlayManager: FloatingOverlayManager
 	private lateinit var captureManager: ScreenCaptureManager
@@ -65,6 +61,14 @@ class GestureHelperService :
 
 	private val viewLifecycleOwner = ViewLifecycleOwner()
 	private var surfaceVisible = mutableStateOf(false)
+
+	override val channelId = "gesture_helper_channel"
+	override val channelName = "Gesture Helper"
+	override val channelDescription = "Gesture helper is running"
+	override val notificationId = 1
+	override val notificationTitle = "Gesture Helper"
+	override val notificationText = "Running"
+
 	override val lifecycle: Lifecycle
 		get() {
 			return viewLifecycleOwner.lifecycle
@@ -78,7 +82,6 @@ class GestureHelperService :
 				getSystemService(Context.WINDOW_SERVICE) as WindowManager,
 			)
 		processor = DebugScreenshotProcessor(this, overlayManager)
-		createNotificationChannel()
 	}
 
 	override fun onStartCommand(
@@ -86,14 +89,22 @@ class GestureHelperService :
 		flags: Int,
 		startId: Int,
 	): Int {
+		super.onStartCommand(intent, flags, startId)
+
 		viewLifecycleOwner.onStart()
 		viewLifecycleOwner.onResume()
 
+		// Check if MediaProjection permission for screen capturing was granted
 		val resultCode =
 			intent?.getIntExtra(
 				MainActivity.EXTRA_RESULT_CODE,
 				Activity.RESULT_CANCELED,
 			) ?: Activity.RESULT_CANCELED
+		if (resultCode != Activity.RESULT_OK) {
+			stopSelf()
+			return START_NOT_STICKY
+		}
+
 		val data =
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
 				intent?.getParcelableExtra(MainActivity.EXTRA_DATA, Intent::class.java)
@@ -102,16 +113,15 @@ class GestureHelperService :
 				intent?.getParcelableExtra(MainActivity.EXTRA_DATA)
 			}
 
-		if (resultCode == Activity.RESULT_OK && data != null) {
-			startForeground(NOTIFICATION_ID, buildNotification())
-			val mpManager = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-			val mediaProjection = mpManager.getMediaProjection(resultCode, data)
-			captureManager = ScreenCaptureManager(this, mediaProjection)
-			showFloatingButton()
-		} else {
+		if (data == null) {
 			stopSelf()
+			return START_NOT_STICKY
 		}
 
+		val mpManager = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+		val mediaProjection = mpManager.getMediaProjection(resultCode, data)
+		captureManager = ScreenCaptureManager(this, mediaProjection)
+		buildUi()
 		return START_NOT_STICKY
 	}
 
@@ -131,8 +141,8 @@ class GestureHelperService :
 					PixelFormat.TRANSLUCENT,
 				).apply {
 					this.gravity = gravity
-					x = 16
-					y = 100
+					this.x = 16
+					this.y = 100
 				}
 		val windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
 		composeView.setContent {
@@ -142,7 +152,7 @@ class GestureHelperService :
 		overlayManager.add(composeView, params)
 	}
 
-	private fun showFloatingButton() {
+	private fun buildUi() {
 		addFloatingWindow(Gravity.TOP or Gravity.START) { _, _, _ ->
 			FloatingToggleButton(
 				onToggle = { surfaceVisible.value = !surfaceVisible.value },
@@ -175,34 +185,8 @@ class GestureHelperService :
 		super.onDestroy()
 	}
 
-	override fun onBind(intent: Intent?): IBinder? = null
-
-	private fun createNotificationChannel() {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-			val channel =
-				NotificationChannel(
-					CHANNEL_ID,
-					"Gesture Helper",
-					NotificationManager.IMPORTANCE_LOW,
-				).apply { description = "Gesture helper is running" }
-			val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-			nm.createNotificationChannel(channel)
-		}
-	}
-
-	private fun buildNotification(): Notification =
-		Notification
-			.Builder(this, CHANNEL_ID)
-			.setContentTitle("Gesture Helper")
-			.setContentText("Running")
-			.setSmallIcon(android.R.drawable.ic_menu_camera)
-			.setOngoing(true)
-			.build()
-
 	companion object {
 		private const val TAG = "GestureHelper"
-		private const val CHANNEL_ID = "gesture_helper_channel"
-		private const val NOTIFICATION_ID = 1
 	}
 }
 
