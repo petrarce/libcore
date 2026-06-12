@@ -12,7 +12,6 @@ import android.media.projection.MediaProjectionManager
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
-import android.util.Log.v
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
@@ -144,74 +143,18 @@ class GestureHelperService :
 	}
 
 	private fun showFloatingButton() {
-		addFloatingWindow(Gravity.TOP or Gravity.START) { wm, p, v ->
-			var showSurface by remember { surfaceVisible }
-			FloatingButtonContent {
-				showSurface = !showSurface
-// 				onButtonTap()
-			}
+		addFloatingWindow(Gravity.TOP or Gravity.START) { _, _, _ ->
+			FloatingToggleButton(
+				onToggle = { surfaceVisible.value = !surfaceVisible.value },
+			)
 		}
 		addFloatingWindow(Gravity.BOTTOM or Gravity.END) { wm, p, v ->
-			val viewPosX = remember { Animatable(p.x.toFloat()) }
-			val velocityTracker = remember { VelocityTracker() }
-			val windowBounds = wm.currentWindowMetrics.bounds
-			val maxX = windowBounds.width() - v.width
-			var showSurface by remember { surfaceVisible }
-			AnimatedVisibility(showSurface, enter = fadeIn(), exit = fadeOut()) {
-				LaunchedEffect(viewPosX.value, viewPosX.value) {
-					p.apply { x = viewPosX.value.roundToInt() }
-					wm.updateViewLayout(v, p)
-				}
-				Surface(
-					shape = RoundedCornerShape(16.dp),
-					modifier =
-						Modifier
-							.size(100.dp, 200.dp)
-							.pointerInput(null) {
-								coroutineScope {
-									detectDragGestures(
-										onDragStart = {
-											velocityTracker.resetTracking()
-										},
-										onDrag = { change, dragAmount ->
-											launch {
-												viewPosX.snapTo(
-													(viewPosX.value - dragAmount.x).coerceIn(
-														0f,
-														maxX.toFloat(),
-													),
-												)
-											}
-											velocityTracker.addPointerInputChange(change)
-											change.consume()
-										},
-										onDragEnd = {
-											val velocity =
-												velocityTracker.calculateVelocity(
-													Velocity(
-														1000f,
-														1000f,
-													),
-												)
-											launch {
-												viewPosX.animateDecay(
-													initialVelocity = -velocity.x,
-													animationSpec = splineBasedDecay(Density(2f)),
-												) {
-													val clamped = value.coerceIn(0f, maxX.toFloat())
-													if (clamped != value) {
-														launch { snapTo(clamped) }
-													}
-												}
-											}
-										},
-									)
-								}
-							},
-					color = Color.Blue,
-				) {
-				}
-			}
+			DraggableOverlaySurface(
+				windowManager = wm,
+				layoutParams = p,
+				view = v,
+				visible = surfaceVisible.value,
+			)
 		}
 	}
 
@@ -260,6 +203,100 @@ class GestureHelperService :
 		private const val TAG = "GestureHelper"
 		private const val CHANNEL_ID = "gesture_helper_channel"
 		private const val NOTIFICATION_ID = 1
+	}
+}
+
+/**
+ * A toggle button displayed as a floating overlay window.
+ *
+ * Tapping the button triggers [onToggle], which typically controls the visibility
+ * of the draggable surface overlay.
+ */
+@Composable
+private fun FloatingToggleButton(onToggle: () -> Unit) {
+	FloatingButtonContent(onTap = onToggle)
+}
+
+/**
+ * A draggable overlay surface with animated visibility, positioned via [WindowManager].
+ *
+ * This composable manages horizontal drag gestures on a [Surface] and updates the
+ * window position in real time. Visibility is controlled by the [visible] parameter,
+ * with fade-in/fade-out transitions.
+ *
+ * @param windowManager The [WindowManager] used to update the window layout.
+ * @param layoutParams The current [WindowManager.LayoutParams] of the overlay window.
+ * @param view The [View] (ComposeView) being positioned.
+ * @param visible Whether the surface should be visible (animated).
+ * @param modifier Optional [Modifier] for the surface.
+ */
+@Composable
+private fun DraggableOverlaySurface(
+	windowManager: WindowManager,
+	layoutParams: WindowManager.LayoutParams,
+	view: View,
+	visible: Boolean,
+	modifier: Modifier = Modifier,
+) {
+	val viewPosX = remember { Animatable(layoutParams.x.toFloat()) }
+	val velocityTracker = remember { VelocityTracker() }
+	val windowBounds = windowManager.currentWindowMetrics.bounds
+	val maxX = (windowBounds.width() - view.width).coerceAtLeast(0)
+
+	AnimatedVisibility(visible, enter = fadeIn(), exit = fadeOut()) {
+		LaunchedEffect(viewPosX.value, viewPosX.value) {
+			layoutParams.apply { x = viewPosX.value.roundToInt() }
+			windowManager.updateViewLayout(view, layoutParams)
+		}
+		Surface(
+			shape = RoundedCornerShape(16.dp),
+			modifier =
+				modifier
+					.size(100.dp, 200.dp)
+					.pointerInput(Unit) {
+						coroutineScope {
+							detectDragGestures(
+								onDragStart = {
+									velocityTracker.resetTracking()
+								},
+								onDrag = { change, dragAmount ->
+									launch {
+										viewPosX.snapTo(
+											(viewPosX.value - dragAmount.x).coerceIn(
+												0f,
+												maxX.toFloat(),
+											),
+										)
+									}
+									velocityTracker.addPointerInputChange(change)
+									change.consume()
+								},
+								onDragEnd = {
+									val velocity =
+										velocityTracker.calculateVelocity(
+											Velocity(
+												1000f,
+												1000f,
+											),
+										)
+									launch {
+										viewPosX.animateDecay(
+											initialVelocity = -velocity.x,
+											animationSpec = splineBasedDecay(Density(2f)),
+										) {
+											val clamped = value.coerceIn(0f, maxX.toFloat())
+											if (clamped != value) {
+												launch { snapTo(clamped) }
+											}
+										}
+									}
+								},
+							)
+						}
+					},
+			color = Color.Blue,
+		) {
+		}
 	}
 }
 
