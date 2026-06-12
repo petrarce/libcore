@@ -1,5 +1,7 @@
 package com.example.gesturehelper
 
+import android.R.attr.contentDescription
+import android.R.attr.visible
 import android.app.Activity
 import android.content.Context
 import android.content.Context.WINDOW_SERVICE
@@ -16,6 +18,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.splineBasedDecay
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,9 +34,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.input.pointer.util.addPointerInputChange
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
@@ -42,11 +48,9 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
-import com.example.gesturehelper.capture.DebugScreenshotProcessor
 import com.example.gesturehelper.ui.FloatingButtonContent
 import com.example.lib.capture.ScreenCaptureManager
 import com.example.lib.capture.ScreenCaptureResult
-import com.example.lib.capture.ScreenshotProcessor
 import com.example.lib.overlay.FloatingOverlayManager
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
@@ -57,10 +61,9 @@ class GestureHelperService :
 	LifecycleOwner {
 	private lateinit var overlayManager: FloatingOverlayManager
 	private lateinit var captureManager: ScreenCaptureManager
-	private lateinit var processor: ScreenshotProcessor
 
 	private val viewLifecycleOwner = ViewLifecycleOwner()
-	private var surfaceVisible = mutableStateOf(false)
+	private var capturedImage = mutableStateOf<ImageBitmap?>(null)
 
 	override val channelId = "gesture_helper_channel"
 	override val channelName = "Gesture Helper"
@@ -81,7 +84,6 @@ class GestureHelperService :
 			FloatingOverlayManager(
 				getSystemService(Context.WINDOW_SERVICE) as WindowManager,
 			)
-		processor = DebugScreenshotProcessor(this, overlayManager)
 	}
 
 	override fun onStartCommand(
@@ -155,7 +157,9 @@ class GestureHelperService :
 	private fun buildUi() {
 		addFloatingWindow(Gravity.TOP or Gravity.START) { _, _, _ ->
 			FloatingToggleButton(
-				onToggle = { surfaceVisible.value = !surfaceVisible.value },
+				onToggle = {
+					onButtonTap()
+				},
 			)
 		}
 		addFloatingWindow(Gravity.BOTTOM or Gravity.END) { wm, p, v ->
@@ -163,7 +167,7 @@ class GestureHelperService :
 				windowManager = wm,
 				layoutParams = p,
 				view = v,
-				visible = surfaceVisible.value,
+				imageBitmap = capturedImage.value,
 			)
 		}
 	}
@@ -171,7 +175,9 @@ class GestureHelperService :
 	private fun onButtonTap() {
 		if (!::captureManager.isInitialized) return
 		when (val result = captureManager.captureFrame()) {
-			is ScreenCaptureResult.Success -> processor.process(result.bitmap)
+			is ScreenCaptureResult.Success -> {
+				capturedImage.value = result.bitmap.asImageBitmap()
+			}
 			is ScreenCaptureResult.Error -> Log.e(TAG, "Capture failed", result.exception)
 			else -> {}
 		}
@@ -204,14 +210,16 @@ private fun FloatingToggleButton(onToggle: () -> Unit) {
 /**
  * A draggable overlay surface with animated visibility, positioned via [WindowManager].
  *
- * This composable manages horizontal drag gestures on a [Surface] and updates the
- * window position in real time. Visibility is controlled by the [visible] parameter,
- * with fade-in/fade-out transitions.
+ * Displays a captured screenshot [imageBitmap] when available, or a solid blue surface
+ * as a fallback. This composable manages horizontal drag gestures on a [Surface] and
+ * updates the window position in real time. Visibility is controlled by the [visible]
+ * parameter, with fade-in/fade-out transitions.
  *
  * @param windowManager The [WindowManager] used to update the window layout.
  * @param layoutParams The current [WindowManager.LayoutParams] of the overlay window.
  * @param view The [View] (ComposeView) being positioned.
  * @param visible Whether the surface should be visible (animated).
+ * @param imageBitmap The captured screenshot to display, or null to show a placeholder.
  * @param modifier Optional [Modifier] for the surface.
  */
 @Composable
@@ -219,7 +227,7 @@ private fun DraggableOverlaySurface(
 	windowManager: WindowManager,
 	layoutParams: WindowManager.LayoutParams,
 	view: View,
-	visible: Boolean,
+	imageBitmap: ImageBitmap?,
 	modifier: Modifier = Modifier,
 ) {
 	val viewPosX = remember { Animatable(layoutParams.x.toFloat()) }
@@ -227,7 +235,7 @@ private fun DraggableOverlaySurface(
 	val windowBounds = windowManager.currentWindowMetrics.bounds
 	val maxX = (windowBounds.width() - view.width).coerceAtLeast(0)
 
-	AnimatedVisibility(visible, enter = fadeIn(), exit = fadeOut()) {
+	AnimatedVisibility(imageBitmap !== null, enter = fadeIn(), exit = fadeOut()) {
 		LaunchedEffect(viewPosX.value, viewPosX.value) {
 			layoutParams.apply { x = viewPosX.value.roundToInt() }
 			windowManager.updateViewLayout(view, layoutParams)
@@ -280,6 +288,14 @@ private fun DraggableOverlaySurface(
 					},
 			color = Color.Blue,
 		) {
+			if (imageBitmap != null) {
+				Image(
+					bitmap = imageBitmap,
+					contentDescription = "Captured screenshot",
+					modifier = Modifier.fillMaxSize(),
+					contentScale = ContentScale.Fit,
+				)
+			}
 		}
 	}
 }
