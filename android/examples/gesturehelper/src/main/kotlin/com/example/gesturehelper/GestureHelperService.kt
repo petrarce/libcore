@@ -16,7 +16,10 @@ import android.util.Log.v
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.splineBasedDecay
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
@@ -44,14 +47,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LifecycleRegistry
-import androidx.lifecycle.ViewModelStore
-import androidx.lifecycle.ViewModelStoreOwner
-import androidx.lifecycle.setViewTreeLifecycleOwner
-import androidx.lifecycle.setViewTreeViewModelStoreOwner
-import androidx.savedstate.SavedStateRegistryController
-import androidx.savedstate.SavedStateRegistryOwner
-import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.example.gesturehelper.capture.DebugScreenshotProcessor
 import com.example.gesturehelper.ui.FloatingButtonContent
 import com.example.lib.capture.ScreenCaptureManager
@@ -68,44 +63,6 @@ class GestureHelperService :
 	private lateinit var overlayManager: FloatingOverlayManager
 	private lateinit var captureManager: ScreenCaptureManager
 	private lateinit var processor: ScreenshotProcessor
-
-	private class ViewLifecycleOwner :
-		LifecycleOwner,
-		ViewModelStoreOwner,
-		SavedStateRegistryOwner {
-		override val lifecycle = LifecycleRegistry(this)
-		override val viewModelStore = ViewModelStore()
-		private val savedStateRegistryController = SavedStateRegistryController.create(this)
-		override val savedStateRegistry = savedStateRegistryController.savedStateRegistry
-
-		fun attachToView(view: View?) {
-			view?.setViewTreeLifecycleOwner(this)
-			view?.setViewTreeViewModelStoreOwner(this)
-			view?.setViewTreeSavedStateRegistryOwner(this)
-		}
-
-		fun onCreate() {
-			savedStateRegistryController.performRestore(null)
-			lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
-		}
-
-		fun onStart() {
-			lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_START)
-		}
-
-		fun onResume() {
-			lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
-		}
-
-		fun onStop() {
-			lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
-		}
-
-		fun onDestroy() {
-			lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-			viewModelStore.clear()
-		}
-	}
 
 	private val viewLifecycleOwner = ViewLifecycleOwner()
 	private var surfaceVisible = mutableStateOf(false)
@@ -199,48 +156,61 @@ class GestureHelperService :
 			val velocityTracker = remember { VelocityTracker() }
 			val windowBounds = wm.currentWindowMetrics.bounds
 			val maxX = windowBounds.width() - v.width
-
-			LaunchedEffect(viewPosX.value, viewPosX.value) {
-				p.apply { x = viewPosX.value.roundToInt() }
-				wm.updateViewLayout(v, p)
-			}
-			Surface(
-				shape = RoundedCornerShape(16.dp),
-				modifier =
-					Modifier
-						.size(100.dp, 200.dp)
-						.pointerInput(null) {
-							coroutineScope {
-								detectDragGestures(
-									onDragStart = {
-										velocityTracker.resetTracking()
-									},
-									onDrag = { change, dragAmount ->
-										launch {
-											viewPosX.snapTo((viewPosX.value - dragAmount.x).coerceIn(0f, maxX.toFloat()))
-										}
-										velocityTracker.addPointerInputChange(change)
-										change.consume()
-									},
-									onDragEnd = {
-										val velocity = velocityTracker.calculateVelocity(Velocity(1000f, 1000f))
-										launch {
-											viewPosX.animateDecay(
-												initialVelocity = -velocity.x,
-												animationSpec = splineBasedDecay(Density(2f)),
-											) {
-												val clamped = value.coerceIn(0f, maxX.toFloat())
-												if (clamped != value) {
-													launch { snapTo(clamped) }
+			var showSurface by remember { surfaceVisible }
+			AnimatedVisibility(showSurface, enter = fadeIn(), exit = fadeOut()) {
+				LaunchedEffect(viewPosX.value, viewPosX.value) {
+					p.apply { x = viewPosX.value.roundToInt() }
+					wm.updateViewLayout(v, p)
+				}
+				Surface(
+					shape = RoundedCornerShape(16.dp),
+					modifier =
+						Modifier
+							.size(100.dp, 200.dp)
+							.pointerInput(null) {
+								coroutineScope {
+									detectDragGestures(
+										onDragStart = {
+											velocityTracker.resetTracking()
+										},
+										onDrag = { change, dragAmount ->
+											launch {
+												viewPosX.snapTo(
+													(viewPosX.value - dragAmount.x).coerceIn(
+														0f,
+														maxX.toFloat(),
+													),
+												)
+											}
+											velocityTracker.addPointerInputChange(change)
+											change.consume()
+										},
+										onDragEnd = {
+											val velocity =
+												velocityTracker.calculateVelocity(
+													Velocity(
+														1000f,
+														1000f,
+													),
+												)
+											launch {
+												viewPosX.animateDecay(
+													initialVelocity = -velocity.x,
+													animationSpec = splineBasedDecay(Density(2f)),
+												) {
+													val clamped = value.coerceIn(0f, maxX.toFloat())
+													if (clamped != value) {
+														launch { snapTo(clamped) }
+													}
 												}
 											}
-										}
-									},
-								)
-							}
-						},
-				color = Color.Blue,
-			) {
+										},
+									)
+								}
+							},
+					color = Color.Blue,
+				) {
+				}
 			}
 		}
 	}
