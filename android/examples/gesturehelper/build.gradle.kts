@@ -40,6 +40,12 @@ android {
 			libs.versions.compose.compiler
 				.get()
 	}
+	packaging {
+		resources {
+			excludes += "/META-INF/{INDEX.LIST,DEPENDENCIES}"
+			excludes += "/META-INF/{AL2.0,LGPL2.1}"
+		}
+	}
 }
 
 ktlint {
@@ -66,5 +72,6 @@ dependencies {
 	implementation(platform(libs.compose.bom))
 	implementation(libs.bundles.compose)
 	implementation(libs.compose.ui.tooling.preview)
+	implementation(libs.androidx.datastore.preferences)
 	debugImplementation(libs.compose.ui.tooling)
 }

@@ -67,6 +67,9 @@ dependencies {
 	implementation(libs.android.appcompat)
 	implementation(libs.lifecycle.runtime)
 
+	// Networking
+	implementation(libs.okhttp)
+
 	// Compose
 	implementation(platform(libs.compose.bom))
 	implementation(libs.bundles.compose)

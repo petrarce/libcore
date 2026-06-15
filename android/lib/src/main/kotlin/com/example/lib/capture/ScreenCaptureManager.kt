@@ -1,11 +1,9 @@
 package com.example.lib.capture
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.graphics.PixelFormat
 import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
-import android.media.Image
 import android.media.ImageReader
 import android.media.projection.MediaProjection
 import android.util.DisplayMetrics
@@ -57,6 +55,15 @@ class ScreenCaptureManager(
 			ScreenCaptureResult.Error(e)
 		}
 
+	/**
+	 * Captures the latest frame from the virtual display.
+	 *
+	 * @return [ScreenCaptureResult.Success] containing the raw [android.media.Image],
+	 *   or [ScreenCaptureResult.Error] if capture fails.
+	 *
+	 * **Important:** The caller is responsible for closing the returned [android.media.Image]
+	 *   via [android.media.Image.close] after consuming its data.
+	 */
 	fun captureFrame(): ScreenCaptureResult {
 		val reader =
 			imageReader
@@ -64,13 +71,7 @@ class ScreenCaptureManager(
 		val image =
 			reader.acquireLatestImage()
 				?: return ScreenCaptureResult.Error(IllegalStateException("No frame available"))
-		return try {
-			ScreenCaptureResult.Success(imageToBitmap(image))
-		} catch (e: Exception) {
-			ScreenCaptureResult.Error(e)
-		} finally {
-			image.close()
-		}
+		return ScreenCaptureResult.Success(image)
 	}
 
 	fun stopCapture() {
@@ -81,33 +82,14 @@ class ScreenCaptureManager(
 		mediaProjection.unregisterCallback(mpCallback)
 	}
 
-	private fun imageToBitmap(image: Image): Bitmap {
-		val buffer = image.planes[0].buffer
-		val w = image.width
-		val h = image.height
-		val pixels = IntArray(w * h)
-		buffer.rewind()
-		buffer.asIntBuffer().get(pixels)
-		for (i in pixels.indices) {
-			val p = pixels[i]
-			val r = p and 0xff
-			val g = (p ushr 8) and 0xff
-			val b = (p ushr 16) and 0xff
-			val a = (p ushr 24) and 0xff
-			pixels[i] = (a shl 24) or (r shl 16) or (g shl 8) or b
-		}
-		return Bitmap.createBitmap(pixels, w, h, Bitmap.Config.ARGB_8888)
-	}
-
 	private fun displayMetrics(): DisplayMetrics {
 		val wm = context.getSystemService<WindowManager>()!!
 		val metrics = DisplayMetrics()
 		wm.defaultDisplay.getRealMetrics(metrics)
-		// test if ktlint actually works
 		return metrics
 	}
 
 	companion object {
-		private val TAG = this.javaClass.simpleName
+		private val TAG = "ScreenCaptureManager"
 	}
 }

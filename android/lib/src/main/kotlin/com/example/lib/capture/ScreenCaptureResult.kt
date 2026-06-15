@@ -1,10 +1,10 @@
 package com.example.lib.capture
 
-import android.graphics.Bitmap
+import android.media.Image
 
 sealed class ScreenCaptureResult {
 	data class Success(
-		val bitmap: Bitmap,
+		val image: Image,
 	) : ScreenCaptureResult()
 
 	data class Error(

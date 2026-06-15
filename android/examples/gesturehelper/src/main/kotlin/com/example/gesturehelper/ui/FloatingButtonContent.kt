@@ -1,5 +1,6 @@
 package com.example.gesturehelper.ui
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -14,11 +15,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.example.gesturehelper.R
 
 @Composable
 fun FloatingButtonContent(
 	modifier: Modifier = Modifier,
+	@DrawableRes image: Int,
+	description: String = "Buttont desctiption",
 	onTap: () -> Unit,
 ) {
 	Box(
@@ -32,8 +34,8 @@ fun FloatingButtonContent(
 		contentAlignment = Alignment.Center,
 	) {
 		Icon(
-			painter = painterResource(R.drawable.ic_camera),
-			contentDescription = "Capture screenshot",
+			painter = painterResource(image),
+			contentDescription = description,
 			tint = MaterialTheme.colorScheme.onPrimaryContainer,
 		)
 	}
