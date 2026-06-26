@@ -1,0 +1,20 @@
+#!/usr/bin/env python3
+
+import argparse
+import cv2
+
+parser = argparse.ArgumentParser(prog="opencw read/write image tutorial")
+parser.add_argument("input", help="path to input image", type=str)
+parser.add_argument("output", help="path to output image", type=str)
+
+args = parser.parse_args()
+
+img_grayscale = cv2.imread(args.input, cv2.IMREAD_GRAYSCALE)
+
+cv2.imshow(args.input, img_grayscale)
+
+cv2.waitKey(0)
+
+cv2.destroyAllWindows()
+
+cv2.imwrite(args.output, img_grayscale)

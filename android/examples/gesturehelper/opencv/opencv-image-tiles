@@ -1,0 +1,41 @@
+#!/usr/bin/env python3
+import sys
+
+import cv2
+import argparse
+import torch
+
+def main(args=None):
+	parser = argparse.ArgumentParser()
+	parser.add_argument("image", type=str, metavar="PATH")
+	parser.add_argument("-tw", "--tile-width", required=True, type=int)
+	parser.add_argument("-th", "--tile-height", required=True, type=int)
+
+	args = parser.parse_args()
+	print(args)
+
+	img = cv2.imread(args.image, cv2.IMREAD_UNCHANGED)
+	width, height = args.tile_width, args.tile_height
+	img_width, img_height = img.shape[1], img.shape[0]
+	print(f"{img}, {img_width}, {img_height}")
+
+	for x in range(0, img_width, width):
+		for y in range(0, img_height, height):
+			end = (
+				max(min(x + width, img_width), 0),
+				max(min(y + height, img_height), 0))
+			start = (x, y)
+			print(f"{start}, {end}")
+			new_img = img[start[1]:end[1], start[0]:end[0]]
+			print()
+			print(f"img[{start[1]}:{end[1]}, {start[0]}:{end[0]}].shape={new_img.shape}")
+			cv2.imwrite(f"tile_{x}_{y}.png", new_img)
+			cv2.rectangle(img, start, end, (0,255,0), 2)
+
+	cv2.imshow("image", img)
+	cv2.waitKey()
+	cv2.destroyAllWindows()
+
+
+if __name__ == "__main__":
+	main(sys.argv)

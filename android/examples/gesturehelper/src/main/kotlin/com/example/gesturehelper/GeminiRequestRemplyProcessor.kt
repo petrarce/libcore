@@ -17,6 +17,7 @@ class GeminiRequestRemplyProcessor {
 	companion object {
 		private val TAG = GeminiRequestRemplyProcessor::class.java.simpleName
 	}
+
 	private var client: Client? = null
 
 	private var _apiKey: String? = null
@@ -58,17 +59,17 @@ class GeminiRequestRemplyProcessor {
 			if (cl == null) {
 				throw RuntimeException("Api key not configured")
 			}
-			val reply = try {
-				cl.models.generateContent(
-					"gemini-3.1-flash-lite",
-					requestContent,
-					null,
-				)
-			}
-			catch (e: Exception) {
-				Log.e(TAG, "Failed to make gemini request: ${e.message}")
-				null
-			}
+			val reply =
+				try {
+					cl.models.generateContent(
+						"gemini-3.1-flash-lite",
+						requestContent,
+						null,
+					)
+				} catch (e: Exception) {
+					Log.e(TAG, "Failed to make gemini request: ${e.message}")
+					null
+				}
 			handleResponce(reply)
 		}
 	}

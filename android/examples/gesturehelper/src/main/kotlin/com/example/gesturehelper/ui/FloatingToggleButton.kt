@@ -11,6 +11,9 @@ import com.example.gesturehelper.R
  * of the draggable surface overlay.
  */
 @Composable
-fun FloatingToggleButton(@DrawableRes imageResource: Int = R.drawable.ic_camera, onToggle: () -> Unit) {
+fun FloatingToggleButton(
+	@DrawableRes imageResource: Int = R.drawable.ic_camera,
+	onToggle: () -> Unit,
+) {
 	FloatingButtonContent(image = imageResource, description = "Make Screenshot", onTap = onToggle)
 }

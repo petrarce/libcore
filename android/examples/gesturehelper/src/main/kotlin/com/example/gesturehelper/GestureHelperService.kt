@@ -11,7 +11,7 @@ import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,15 +22,20 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import com.example.gesturehelper.preferences.EncriptedPreferences
+import com.example.gesturehelper.ui.ChessAnalysisButton
 import com.example.gesturehelper.ui.DraggableOverlaySurface
 import com.example.gesturehelper.ui.FloatingToggleButton
 import com.example.gesturehelper.ui.MessageToggleButton
 import com.example.lib.capture.ScreenCaptureManager
 import com.example.lib.capture.ScreenCaptureResult
+import com.example.lib.lichess.LichessApiClient
 import com.example.lib.overlay.FloatingOverlayManager
+import com.google.genai.types.FinishReason
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
 
 class GestureHelperService :
 	BackgroundServiceBase(),
@@ -43,6 +48,7 @@ class GestureHelperService :
 
 	var prefs = EncriptedPreferences(this)
 	val aiChatClient = GeminiRequestRemplyProcessor()
+	private val lichessClient = LichessApiClient()
 	override val channelId = "gesture_helper_channel"
 	override val channelName = "Gesture Helper"
 	override val channelDescription = "Gesture helper is running"
@@ -142,7 +148,7 @@ class GestureHelperService :
 		addFloatingWindow(
 			gravity = Gravity.TOP or Gravity.START,
 		) { windowManager, params, view ->
-			Column {
+			Row {
 				FloatingToggleButton(onToggle = {
 					if (capturedImage.value == null) {
 						onButtonTap()
@@ -152,8 +158,8 @@ class GestureHelperService :
 				})
 				val image by remember { capturedImage }
 				MessageToggleButton(windowManager, params, view, image)
-				FloatingToggleButton(imageResource = R.drawable.ic_chess_pawn, onToggle = {
-					// TODO: implement querying chess result
+				ChessAnalysisButton(onAnalyze = { onResult ->
+					onChessAnalysisTap(onResult)
 				})
 			}
 		}
@@ -188,6 +194,115 @@ class GestureHelperService :
 			}
 			is ScreenCaptureResult.Error -> Log.e(TAG, "Capture failed", result.exception)
 			else -> {}
+		}
+	}
+
+	private fun captureScreenshot(): ImageBitmap? {
+		Log.d(TAG, "Capturing screenshot for chess analysis")
+		if (!::captureManager.isInitialized) return null
+		return when (val result = captureManager.captureFrame()) {
+			is ScreenCaptureResult.Success -> {
+				val image = result.image
+				try {
+					if (image.hardwareBuffer == null) {
+						Log.e(TAG, "Empty image after screen capture")
+						return null
+					}
+					val bitmap = Bitmap.wrapHardwareBuffer(image.hardwareBuffer!!, null)
+					bitmap?.copy(Bitmap.Config.ARGB_8888, false)?.asImageBitmap()
+				} finally {
+					image.close()
+				}
+			}
+			is ScreenCaptureResult.Error -> {
+				Log.e(TAG, "Capture failed", result.exception)
+				null
+			}
+			else -> null
+		}
+	}
+
+	private fun onChessAnalysisTap(onResult: (String) -> Unit) {
+		val imageBitmap =
+			captureScreenshot() ?: run {
+				Log.e(TAG, "Failed to capture screenshot for chess analysis")
+				onResult("")
+				return
+			}
+
+		CoroutineScope(Dispatchers.Default).launch {
+			// Step 1: Ask AI to detect chessboard and return FEN
+			val fenPrompt =
+				"""
+				Look at this screenshot. If there is a chess board visible on the screen,
+				provide ONLY the FEN string of the position shown (e.g. rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1).
+				If no chess board is detected, respond with exactly: NO_CHESSBOARD
+				""".trimIndent()
+
+			val fen =
+				suspendCancellableCoroutine<String?> { cont ->
+					aiChatClient.GenerateReply(fenPrompt, imageBitmap, handleResponce = { response ->
+						if (response == null || response.finishReason().knownEnum() != FinishReason.Known.STOP) {
+							cont.resume(null)
+							return@GenerateReply
+						}
+						cont.resume(response.text()?.trim())
+					})
+				}
+
+			if (fen == null || fen == "NO_CHESSBOARD") {
+				Log.w(TAG, "No chessboard detected in screenshot: fen=$fen")
+				onResult("")
+				return@launch
+			}
+
+			Log.d(TAG, "FEN detected: $fen")
+
+			// Step 2: Evaluate with Lichess cloud API
+			val lichessResult = lichessClient.EvaluateBoard(fen)
+
+			lichessResult.fold(
+				onSuccess = { eval ->
+					Log.d(TAG, "Lichess evaluation: depth=${eval.depth}, pvs=${eval.pvs.size}")
+
+					// Step 3: Ask AI to beautify and explain the Lichess results
+					val pvSummaries =
+						eval.pvs
+							.mapIndexed { index, pv ->
+								val score = if (pv.mate != null) "Mate in ${pv.mate}" else "${pv.cp}cp"
+								"${index + 1}. ${pv.moves} ($score)"
+							}.joinToString("\n")
+
+					val beautifyPrompt =
+						"""
+						Chess position evaluation:
+						FEN: ${eval.fen}
+						Depth: ${eval.depth}
+						Principal variations:
+						$pvSummaries
+
+						Provide a brief 1-2 sentence explanation of all suggested moves and why it is good,
+						including relevant chess theory. Keep it concise.
+						""".trimIndent()
+
+					val explanation =
+						suspendCancellableCoroutine<String?> { cont ->
+							aiChatClient.GenerateReply(beautifyPrompt, handleResponce = { response ->
+								if (response == null || response.finishReason().knownEnum() != FinishReason.Known.STOP) {
+									cont.resume("Analysis complete.")
+									return@GenerateReply
+								}
+								cont.resume(response.text())
+							})
+						}
+
+					onResult(explanation ?: "Analysis complete.")
+				},
+				onFailure = { error ->
+					Log.e(TAG, "Lichess evaluation failed: ${error.message}", error)
+					onResult("")
+				},
+			)
 		}
 	}
 

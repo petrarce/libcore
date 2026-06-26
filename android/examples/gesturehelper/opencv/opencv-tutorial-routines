@@ -1,0 +1,25 @@
+#!/usr/bin/env python3
+import learn_cv2
+import argparse
+
+def fun_rotate(args):
+	learn_cv2.transform_image(args.path, args.angle)
+
+def main():
+	parser = argparse.ArgumentParser()
+	subparsers = parser.add_subparsers(
+		title="command",
+		description="subcommands fpr the python utils",
+		required=True)
+
+	parser_rotate = subparsers.add_parser('rotate', help="Rotate image")
+	parser_rotate.set_defaults(function=fun_rotate)
+	parser_rotate.add_argument("path", type=str)
+	parser_rotate.add_argument("-a", "--angle", required=True, type=float,)
+
+	args = parser.parse_args()
+	print(args)
+	args.function(args)
+
+if __name__ == '__main__':
+	main()
