@@ -17,6 +17,7 @@ add_boost_test(
         test_ranges_v3.cpp
         test_factorization.cpp
         test_euler_problem_29.cpp
+        test_soc_listenter.cpp
     LINK
         libcore::filters
         libcore::math
@@ -25,4 +26,5 @@ add_boost_test(
         euler-project-solution-lib
         absl::strings
         absl::flags
+        networking
     )
