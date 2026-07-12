@@ -13,6 +13,8 @@ add_library( leetcode-solutions
         strings_gcd.h
         array_differences.cpp
         array_differences.h
+        longest_valid_parenthes.cpp
+        longest_valid_parenthes.h
 )
 add_library( libcore::leetcode-solutions ALIAS leetcode-solutions )
 target_compile_options( leetcode-solutions PRIVATE -g -O0 )

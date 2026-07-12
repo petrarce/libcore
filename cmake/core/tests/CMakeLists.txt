@@ -18,6 +18,7 @@ add_boost_test(
         test_factorization.cpp
         test_euler_problem_29.cpp
         test_soc_listenter.cpp
+        test_longest_valid_parenthes.cpp
     LINK
         libcore::filters
         libcore::math
