@@ -1,5 +1,7 @@
 #define BOOST_TEST_NO_MAIN
 
+#include "SocDatagram.h"
+
 #include <boost/test/unit_test.hpp>
 #include <SocSession.h>
 #include <ranges>
@@ -96,5 +98,19 @@ BOOST_AUTO_TEST_CASE(TestMultipleConnections)
 		BOOST_CHECK(std::ranges::equal(
 			msgFromServer, std::vector(msgFromServerView.begin(), msgFromServerView.end())));
 	}
+}
+
+BOOST_AUTO_TEST_CASE(TestDatagramSocketConnection)
+{
+	SocDatagram socListener;
+	socListener.Listen("127.0.0.1", 12345);
+	BOOST_CHECK(SocDatagram::IsBound("127.0.0.1", 12345));
+	SocDatagram socConnected;
+	socConnected.Connect("127.0.0.1", 12345);
+	BOOST_REQUIRE(true);
+	const auto buf = std::vector<uint8_t>{ 1, 2, 3, 4, 5 };
+	socConnected.Write(buf);
+	const auto in_buf = socListener.Read();
+	BOOST_CHECK(buf == in_buf);
 }
 BOOST_AUTO_TEST_SUITE_END()
