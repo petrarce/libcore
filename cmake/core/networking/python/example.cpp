@@ -56,7 +56,7 @@ PYBIND11_MODULE(example_python, m)
 									 __FUNCTION__, __LINE__, __FILE_NAME__)
 					  << std::endl;
 		},
-		"Lambda function alternative", "message" _a = "Example message in lambda");
+		"Lambda function alternative", "message"_a = "Example message in lambda");
 	py::class_<MyClass>(m, "Printer")
 		.def(py::init<const std::string&>())
 		.def(py::init())
