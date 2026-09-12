@@ -15,6 +15,8 @@ add_library( leetcode-solutions
         array_differences.h
         longest_valid_parenthes.cpp
         longest_valid_parenthes.h
+        median_two_sorted_arrays.cpp
+        median_two_sorted_arrays.h
 )
 add_library( libcore::leetcode-solutions ALIAS leetcode-solutions )
 target_compile_options( leetcode-solutions PRIVATE -g -O0 )
